@@ -8,7 +8,7 @@ DB := ./data/db.sqlite
 # To prevent migration conflicts, we keep track of the current schema.
 CURRENT_SCHEMA := ./db/current-schema.sql
 
-TEMPLATES_SRC := $(wildcard ./internal/templates/*.templ)
+TEMPLATES_SRC := $(wildcard ./internal/templates/**/*.templ ./internal/templates/*.templ)
 TEMPLATES_DST := $(patsubst %.templ,%_templ.go,$(TEMPLATES_SRC))
 
 SQLC_SRC := $(wildcard ./db/sqlc/*.sql)

@@ -3,8 +3,6 @@ package http
 import (
 	"log/slog"
 	"net/http"
-
-	"github.com/Polo123456789/entry-watch/internal/templates"
 )
 
 func setupRoutes(
@@ -12,7 +10,6 @@ func setupRoutes(
 	logger *slog.Logger,
 ) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		content := templates.Index()
-		content.Render(r.Context(), w)
+		http.Error(w, "Not Implemented", http.StatusNotImplemented)
 	})
 }
