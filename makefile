@@ -1,6 +1,6 @@
 # Change these variables as necessary.
-MAIN_PACKAGE_PATH := ./cmd/app-name
-BINARY_NAME := app-name
+MAIN_PACKAGE_PATH := ./cmd/entry-watch
+BINARY_NAME := entry-watch
 
 MIGRATIONS := ./db/migrations
 DB := ./data/db.sqlite

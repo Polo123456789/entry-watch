@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/log"
 	_ "modernc.org/sqlite"
 
-	"github.com/Polo123456789/golang-web-template/internal/http"
+	"github.com/Polo123456789/entry-watch/internal/http"
 )
 
 // Set in config, you set that

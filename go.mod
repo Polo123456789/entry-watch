@@ -1,4 +1,4 @@
-module github.com/Polo123456789/golang-web-template
+module github.com/Polo123456789/entry-watch
 
 go 1.24.5
 
