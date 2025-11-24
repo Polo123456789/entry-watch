@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/log"
 	_ "modernc.org/sqlite"
 
+	"github.com/Polo123456789/entry-watch/internal/app"
 	"github.com/Polo123456789/entry-watch/internal/http"
 )
 
@@ -33,9 +34,12 @@ func main() {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
+	app := app.NewApp(logger, nil)
+
 	server := http.NewServer(
 		"0.0.0.0",
 		8080,
+		app,
 		logger,
 	)
 

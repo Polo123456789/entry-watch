@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/Polo123456789/assert"
+	"github.com/Polo123456789/entry-watch/internal/app"
 )
 
 func NewServer(
 	address string,
 	port int,
+	app *app.App,
 	logger *slog.Logger,
 ) *http.Server {
 	assert.NotEquals(address, "")
@@ -24,6 +26,7 @@ func NewServer(
 
 	setupRoutes(
 		mux,
+		app,
 		logger,
 	)
 

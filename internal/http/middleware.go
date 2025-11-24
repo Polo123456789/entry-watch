@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/Polo123456789/entry-watch/internal/app"
 )
 
 type wrappedWritter struct {
@@ -22,7 +24,16 @@ func CanonicalLoggerMiddleware(logger *slog.Logger, next http.Handler) http.Hand
 		start := time.Now()
 
 		ww := &wrappedWritter{w, http.StatusOK}
-		next.ServeHTTP(ww, r)
+
+		// TODO: Use actual auth instead of the mock one
+		ctx := app.WithUser(r.Context(), &app.User{
+			ID:            1,
+			CondominiumID: 1,
+			Role:          app.RoleSuperAdmin,
+			Enabled:       true,
+		})
+
+		next.ServeHTTP(ww, r.WithContext(ctx))
 
 		attrs := []slog.Attr{
 			slog.String("url", r.URL.String()),

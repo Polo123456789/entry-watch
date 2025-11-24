@@ -20,7 +20,7 @@ type User struct {
 
 type userCtxKey struct{}
 
-func WithUser(ctx context.Context, user *User) any {
+func WithUser(ctx context.Context, user *User) context.Context {
 	return context.WithValue(ctx, userCtxKey{}, user)
 }
 

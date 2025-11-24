@@ -1,6 +1,9 @@
 package app
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Visit struct {
 	ID            int64
@@ -17,9 +20,10 @@ type Visit struct {
 }
 
 type VisitStore interface {
-	VisitGetByCode(code string) (*Visit, error)
-	VisitCreate(visit *Visit) (*Visit, error)
+	VisitGetByCode(ctx context.Context, code string) (*Visit, error)
+	VisitCreate(ctx context.Context, visit *Visit) (*Visit, error)
 	VisitUpdate(
+		ctx context.Context,
 		id int64,
 		updateFn func(visit *Visit) (*Visit, error),
 	) error

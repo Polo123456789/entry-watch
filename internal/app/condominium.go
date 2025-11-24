@@ -1,6 +1,9 @@
 package app
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Condominium struct {
 	ID        int64
@@ -13,9 +16,10 @@ type Condominium struct {
 }
 
 type CondominiumStore interface {
-	CondoGetByID(id int64) (*Condominium, error)
-	CondoCreate(condo *Condominium) (*Condominium, error)
+	CondoGetByID(ctx context.Context, id int64) (*Condominium, error)
+	CondoCreate(ctx context.Context, condo *Condominium) (*Condominium, error)
 	CondoUpdate(
+		ctx context.Context,
 		id int64,
 		updateFn func(condo *Condominium) (*Condominium, error),
 	) error
