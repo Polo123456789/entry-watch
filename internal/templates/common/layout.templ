@@ -1,0 +1,32 @@
+package common
+
+import "time"
+
+templ Layout(title string, headTags templ.Component, navbar templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+			<link
+				rel="stylesheet"
+				href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.indigo.min.css"
+			/>
+			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" defer></script>
+			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+			@headTags
+		</head>
+		<body>
+			@navbar
+			<main>
+				{ children... }
+			</main>
+			<footer>
+				<p>
+					&copy; { time.Now().Year() } Pablo Sanchez. Todos los derechos reservados.
+				</p>
+			</footer>
+		</body>
+	</html>
+}
