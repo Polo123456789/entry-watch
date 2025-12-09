@@ -4,17 +4,34 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Polo123456789/entry-watch/internal/app"
+	"github.com/Polo123456789/entry-watch/internal/entry"
 )
 
 func Handle(
-	app *app.App,
+	app *entry.App,
 	logger *slog.Logger,
 ) http.Handler {
 	mux := http.NewServeMux()
 
-	// Setup routes
-	// Middlerewares
+	mux.Handle("/neighbor/", hGet(app, logger))
 
-	return mux
+	var handler http.Handler = mux
+	handler = authMiddleware(handler, app, logger)
+	return handler
+}
+
+func authMiddleware(
+	next http.Handler,
+	app *entry.App,
+	logger *slog.Logger,
+) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := entry.RequireRole(r.Context(), entry.RoleUser)
+		if err != nil {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

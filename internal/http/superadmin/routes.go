@@ -4,11 +4,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Polo123456789/entry-watch/internal/app"
+	"github.com/Polo123456789/entry-watch/internal/entry"
 )
 
 func Handle(
-	app *app.App,
+	app *entry.App,
 	logger *slog.Logger,
 ) http.Handler {
 	mux := http.NewServeMux()

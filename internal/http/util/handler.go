@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Polo123456789/entry-watch/internal/app"
+	"github.com/Polo123456789/entry-watch/internal/entry"
 )
 
 func Handler(
@@ -19,9 +19,9 @@ func Handler(
 			return
 		} else if e, ok := errorAs[*ErrorWithCode](err); ok {
 			http.Error(w, e.msg, e.code)
-		} else if e, ok := errorAs[app.ForbiddenError](err); ok {
+		} else if e, ok := errorAs[entry.ForbiddenError](err); ok {
 			http.Error(w, e.Error(), http.StatusForbidden)
-		} else if e, ok := errorAs[app.UnauthorizedError](err); ok {
+		} else if e, ok := errorAs[entry.UnauthorizedError](err); ok {
 			http.Error(w, e.Error(), http.StatusUnauthorized)
 		} else {
 			// TODO: Get request ID from context
