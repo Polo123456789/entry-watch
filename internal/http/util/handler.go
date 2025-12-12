@@ -14,26 +14,32 @@ func Handler(
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := h(w, r)
-
-		if err == nil {
-			return
-		} else if e, ok := errorAs[*ErrorWithCode](err); ok {
-			http.Error(w, e.msg, e.code)
-		} else if e, ok := errorAs[entry.ForbiddenError](err); ok {
-			http.Error(w, e.Error(), http.StatusForbidden)
-		} else if e, ok := errorAs[entry.UnauthorizedError](err); ok {
-			http.Error(w, e.Error(), http.StatusUnauthorized)
-		} else {
-			// TODO: Get request ID from context
-			logger.LogAttrs(
-				r.Context(),
-				slog.LevelError,
-				"internal server error",
-				slog.String("error", err.Error()),
-			)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
+		if err != nil {
+			HandleError(w, r, logger, err)
 		}
 	})
+}
+
+// Add here special handling for different error types
+func HandleError(
+	w http.ResponseWriter, r *http.Request, logger *slog.Logger, err error,
+) {
+	if e, ok := errorAs[*ErrorWithCode](err); ok {
+		http.Error(w, e.msg, e.code)
+	} else if e, ok := errorAs[entry.ForbiddenError](err); ok {
+		http.Error(w, e.Error(), http.StatusForbidden)
+	} else if e, ok := errorAs[entry.UnauthorizedError](err); ok {
+		http.Error(w, e.Error(), http.StatusUnauthorized)
+	} else {
+		// TODO: Get request ID from context
+		logger.LogAttrs(
+			r.Context(),
+			slog.LevelError,
+			"internal server error",
+			slog.String("error", err.Error()),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+	}
 }
 
 type ErrorWithCode struct {
