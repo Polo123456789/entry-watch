@@ -5,8 +5,14 @@ import "github.com/Polo123456789/entry-watch/internal/templates/common"
 templ Navbar() {
 	@common.Navbar() {
 		<ul>
-			<li>Nueva</li>
-			<li>Mis visitas</li>
+			<li>
+				<a href="/neighbor/">Nueva</a>
+			</li>
+			<li>
+				<a href="/neighbor/visits">
+					Mis visitas
+				</a>
+			</li>
 		</ul>
 	}
 }

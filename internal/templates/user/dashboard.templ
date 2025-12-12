@@ -1,15 +1,75 @@
 package templates
 
-import "github.com/Polo123456789/entry-watch/internal/templates/common"
+import (
+	"time"
+	"fmt"
+	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/templates/common"
+)
 
-templ Dashboard() {
+templ Dashboard(visit entry.Visit) {
 	@common.Layout("Visitas", HeaderTags(), Navbar()) {
 		<section>
 			<p>
-				TODO: Show this in a handler please
-			</p>
-			<p>
-				TODO: Register new visits here
+				<form
+					method="post"
+					action="/neighbor/"
+					x-data={ fmt.Sprintf(`{ limitUses: %t }`, visit.MaxUses > 0) }
+				>
+					<hgroup>
+						<h3>Registrar visita</h3>
+					</hgroup>
+					<fieldset>
+						<label for="visitor_name">Nombre del visitante</label>
+						<input id="visitor_name" name="visitor_name" type="text" required value={ visit.VisitorName }/>
+						<small class="muted">El guardia de seguridad solicitara su documento de identificacion</small>
+					</fieldset>
+					<fieldset>
+						<label>
+							<input
+								type="checkbox"
+								id="limit_uses_toggle"
+								name="limit_uses"
+								x-model="limitUses"
+							/> Limitar usos
+						</label>
+					</fieldset>
+					<fieldset x-show="limitUses" x-cloak x-transition>
+						<label for="max_uses">Usos máximos</label>
+						<input
+							id="max_uses"
+							name="max_uses"
+							type="number"
+							min="1"
+							value={ visit.MaxUses }
+							:disabled="!limitUses"
+						/>
+						<small class="muted"></small>
+					</fieldset>
+					<fieldset>
+						<label for="valid_from">Válido desde</label>
+						<input
+							id="valid_from"
+							name="valid_from"
+							type="date"
+							value={ visit.ValidFrom.Format(time.DateOnly) }
+						/>
+						<small class="muted"></small>
+					</fieldset>
+					<fieldset>
+						<label for="valid_to">Válido hasta</label>
+						<input
+							id="valid_to"
+							name="valid_to"
+							type="date"
+							value={ visit.ValidTo.Format(time.DateOnly) }
+						/>
+						<small class="muted"></small>
+					</fieldset>
+					<footer>
+						<button type="submit">Crear visita</button>
+					</footer>
+				</form>
 			</p>
 		</section>
 	}
