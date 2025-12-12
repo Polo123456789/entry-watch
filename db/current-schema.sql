@@ -41,8 +41,7 @@ CREATE TABLE users (
     FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
 );
 CREATE TABLE visits (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL UNIQUE,
+    id TEXT NOT NULL UNIQUE PRIMARY KEY,
     condominium_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     visitor_name TEXT NOT NULL,
