@@ -44,7 +44,6 @@ templ Dashboard(visit entry.Visit) {
 							value={ visit.MaxUses }
 							:disabled="!limitUses"
 						/>
-						<small class="muted"></small>
 					</fieldset>
 					<fieldset>
 						<label for="valid_from">Válido desde</label>
@@ -54,7 +53,6 @@ templ Dashboard(visit entry.Visit) {
 							type="date"
 							value={ visit.ValidFrom.Format(time.DateOnly) }
 						/>
-						<small class="muted"></small>
 					</fieldset>
 					<fieldset>
 						<label for="valid_to">Válido hasta</label>
@@ -64,7 +62,6 @@ templ Dashboard(visit entry.Visit) {
 							type="date"
 							value={ visit.ValidTo.Format(time.DateOnly) }
 						/>
-						<small class="muted"></small>
 					</fieldset>
 					<footer>
 						<button type="submit">Crear visita</button>

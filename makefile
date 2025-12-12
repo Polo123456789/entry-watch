@@ -91,8 +91,6 @@ $(SQLC_DST) &: $(SQLC_SRC)
 ## build: build the application
 .PHONY: build
 build: templates sqlc
-	# Include additional build steps, like TypeScript, SCSS or Tailwind
-	# compilation here, or add them as dependencies to this target (faster)
 	go build -tags assert -o=${TMPDIR}/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## run: run the  application
