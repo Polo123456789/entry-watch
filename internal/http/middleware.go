@@ -47,9 +47,19 @@ func CanonicalLoggerMiddleware(logger *slog.Logger, app *entry.App, store sessio
 						} else {
 							// clear invalid or disabled session uid to avoid stale auth
 							delete(sess.Values, "uid")
+							// Set Secure flag based on TLS so local dev HTTP works
+							secure := r.TLS != nil
+							sess.Options = &sessions.Options{
+								Path:     "/",
+								HttpOnly: true,
+								MaxAge:   60 * 60 * 12,
+								Secure:   secure,
+								SameSite: http.SameSiteStrictMode,
+							}
 							_ = sess.Save(r, w)
 						}
 					}
+
 				}
 
 			}
