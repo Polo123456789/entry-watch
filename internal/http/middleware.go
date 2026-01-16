@@ -44,9 +44,14 @@ func CanonicalLoggerMiddleware(logger *slog.Logger, app *entry.App, store sessio
 								Role:          su.Role,
 								Enabled:       su.Enabled,
 							})
+						} else {
+							// clear invalid or disabled session uid to avoid stale auth
+							delete(sess.Values, "uid")
+							_ = sess.Save(r, w)
 						}
 					}
 				}
+
 			}
 		}
 
