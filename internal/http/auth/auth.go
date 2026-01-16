@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	templates "github.com/Polo123456789/entry-watch/internal/templates/user"
 	"github.com/gorilla/sessions"
 	"log/slog"
 )
@@ -13,8 +14,10 @@ func Handle(app *entry.App, store sessions.Store, logger *slog.Logger) http.Hand
 	mux := http.NewServeMux()
 	mux.HandleFunc("/auth/login", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("<html><body><form method=POST><input name=\"email\" placeholder=\"email\"/><input name=\"password\" type=\"password\" placeholder=\"password\"/><button type=submit>Login</button></form></body></html>"))
+			if err := templates.Login().Render(r.Context(), w); err != nil {
+				logger.Info("failed to render login template", "error", err)
+				http.Error(w, "server error", http.StatusInternalServerError)
+			}
 			return
 		}
 		if r.Method != http.MethodPost {
