@@ -60,17 +60,18 @@ func CanonicalLoggerMiddleware(logger *slog.Logger, app *entry.App, store sessio
 		}
 
 		// If we have an authenticated user in the context, add its ID and role
-		if u := entry.UserFromCtx(r.Context()); u != nil {
+		if u := entry.UserFromCtx(ctx); u != nil {
 			attrs = append(attrs, slog.Int64("user_id", u.ID))
 			attrs = append(attrs, slog.String("role", string(u.Role)))
 		}
 
 		logger.LogAttrs(
-			r.Context(),
+			ctx,
 			slog.LevelInfo,
 			"canonical-log",
 			attrs...,
 		)
+
 	})
 }
 
