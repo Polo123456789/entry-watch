@@ -80,3 +80,12 @@ func (a *App) UserGetByID(ctx context.Context, id int64) (*StoreUser, error) {
 	}
 	return a.store.UserGetByID(ctx, id)
 }
+
+// UserGetByEmail exposes the underlying store's UserGetByEmail implementation
+// so HTTP handlers and middleware can lookup users by email.
+func (a *App) UserGetByEmail(ctx context.Context, email string) (*StoreUser, error) {
+	if a.store == nil {
+		return nil, ErrNotFound
+	}
+	return a.store.UserGetByEmail(ctx, email)
+}

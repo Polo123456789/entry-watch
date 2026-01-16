@@ -6,6 +6,7 @@ import (
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
 	"github.com/Polo123456789/entry-watch/internal/http/admin"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 	"github.com/Polo123456789/entry-watch/internal/http/guard"
 	"github.com/Polo123456789/entry-watch/internal/http/superadmin"
 	"github.com/Polo123456789/entry-watch/internal/http/user"
@@ -18,7 +19,7 @@ func setupRoutes(
 	logger *slog.Logger,
 ) {
 	// TODO: mux.Handle("/", public.Handle(app, logger)) Is this needed?
-	// TODO: mux.Handle("/auth/", auth.Handle(app, logger))
+	mux.Handle("/auth/", auth.Handle(app, logger))
 	mux.Handle("/super/", superadmin.Handle(app, logger))
 	mux.Handle("/admin/", admin.Handle(app, logger))
 	mux.Handle("/guard/", guard.Handle(app, logger))
