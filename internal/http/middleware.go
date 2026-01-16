@@ -55,23 +55,11 @@ func CanonicalLoggerMiddleware(logger *slog.Logger, app *entry.App, next http.Ha
 			slog.Duration("duration", time.Since(start)),
 		}
 
-		//
-
-		/*
-			You might want to add more stuff in here, like ips, the user that
-			made the request, or the request ID if you have one.
-
-			if u, ok := CurrentUser(r); ok {
-				attrs = append(attrs, slog.Int64("user_id", u.ID))
-				// Maybe add it to the context here?
-			}
-
-			if ip := r.Header.Get("X-Real-IP"); ip != "" {
-				attrs = append(attrs, slog.String("ip", ip))
-			} else {
-				attrs = append(attrs, slog.String("ip", r.RemoteAddr))
-			}
-		*/
+		// If we have an authenticated user in the context, add its ID and role
+		if u := entry.UserFromCtx(r.Context()); u != nil {
+			attrs = append(attrs, slog.Int64("user_id", u.ID))
+			attrs = append(attrs, slog.String("role", string(u.Role)))
+		}
 
 		logger.LogAttrs(
 			r.Context(),
