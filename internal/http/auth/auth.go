@@ -87,7 +87,9 @@ func Handle(app *entry.App, store sessions.Store, logger *slog.Logger) http.Hand
 	mux.HandleFunc("/auth/logout", func(w http.ResponseWriter, r *http.Request) {
 		sess, err := store.Get(r, "entrywatch_session")
 		if err == nil && sess != nil {
-			sess.Options = &sessions.Options{Path: "/", MaxAge: -1, HttpOnly: true, Secure: true, SameSite: http.SameSiteStrictMode}
+			// Set Secure flag only when request is over TLS so local dev HTTP works
+			secure := r.TLS != nil
+			sess.Options = &sessions.Options{Path: "/", MaxAge: -1, HttpOnly: true, Secure: secure, SameSite: http.SameSiteStrictMode}
 			_ = sess.Save(r, w)
 		}
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
