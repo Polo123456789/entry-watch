@@ -58,7 +58,7 @@ func Handle(app *entry.App, store sessions.Store, logger *slog.Logger) http.Hand
 				Path:     "/",
 				HttpOnly: true,
 				MaxAge:   60 * 60 * 12, // 12 hours
-				// Secure:   true,
+				Secure:   true,
 				SameSite: http.SameSiteStrictMode,
 			}
 			if err := sess.Save(r, w); err != nil {
@@ -82,7 +82,7 @@ func Handle(app *entry.App, store sessions.Store, logger *slog.Logger) http.Hand
 	mux.HandleFunc("/auth/logout", func(w http.ResponseWriter, r *http.Request) {
 		sess, err := store.Get(r, "entrywatch_session")
 		if err == nil && sess != nil {
-			sess.Options = &sessions.Options{Path: "/", MaxAge: -1}
+			sess.Options = &sessions.Options{Path: "/", MaxAge: -1, HttpOnly: true, Secure: true, SameSite: http.SameSiteStrictMode}
 			_ = sess.Save(r, w)
 		}
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
