@@ -32,7 +32,7 @@ func NewServer(
 
 	// Global middlewares
 	var handler http.Handler = mux
-	handler = CanonicalLoggerMiddleware(logger, handler)
+	handler = CanonicalLoggerMiddleware(logger, app, handler)
 	handler = RecoverMiddleware(logger, handler)
 
 	server := &http.Server{

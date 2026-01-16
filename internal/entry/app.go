@@ -69,3 +69,14 @@ func (a *App) BootstrapSuperadmin(ctx context.Context) error {
 	_, err = a.store.UserCreate(ctx, u)
 	return err
 }
+
+// UserGetByID is a small wrapper that exposes the underlying store's
+// UserGetByID implementation to packages outside the entry package. This
+// allows HTTP middleware to lookup users without accessing internal store
+// fields directly.
+func (a *App) UserGetByID(ctx context.Context, id int64) (*StoreUser, error) {
+	if a.store == nil {
+		return nil, ErrNotFound
+	}
+	return a.store.UserGetByID(ctx, id)
+}

@@ -19,19 +19,32 @@ func (w *wrappedWritter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-func CanonicalLoggerMiddleware(logger *slog.Logger, next http.Handler) http.Handler {
+func CanonicalLoggerMiddleware(logger *slog.Logger, app *entry.App, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		ww := &wrappedWritter{w, http.StatusOK}
 
-		// TODO: Use actual auth instead of the mock one
-		ctx := entry.WithUser(r.Context(), &entry.User{
-			ID:            1,
-			CondominiumID: 1,
-			Role:          entry.RoleSuperAdmin,
-			Enabled:       true,
-		})
+		// Attempt to authenticate user from a simple cookie-backed uid.
+		// Cookie name: entrywatch_uid (stores numeric user id)
+		ctx := r.Context()
+		if app != nil {
+			if c, err := r.Cookie("entrywatch_uid"); err == nil {
+				// parse numeric id
+				var uid int64
+				_, err := fmt.Sscanf(c.Value, "%d", &uid)
+				if err == nil && uid > 0 {
+					if su, err := app.UserGetByID(ctx, uid); err == nil && su != nil && su.Enabled {
+						ctx = entry.WithUser(ctx, &entry.User{
+							ID:            su.ID,
+							CondominiumID: su.CondominiumID,
+							Role:          su.Role,
+							Enabled:       su.Enabled,
+						})
+					}
+				}
+			}
+		}
 
 		next.ServeHTTP(ww, r.WithContext(ctx))
 
