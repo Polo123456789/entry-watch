@@ -12,6 +12,7 @@ import (
 
 	"github.com/Polo123456789/entry-watch/db"
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/entry/sqlstore"
 	"github.com/Polo123456789/entry-watch/internal/http"
 )
 
@@ -69,8 +70,8 @@ func main() {
 		}
 	}
 
-	// NOTE: sqlstore not implemented yet; keep using MemStore until sqlc/sqlstore is added.
-	store := entry.NewMemStore()
+	// Use sqlite-backed store implementation
+	store := sqlstore.New(sqlDB, logger)
 	app := entry.NewApp(logger, store)
 
 	// Ensure a bootstrap superadmin exists in the store
