@@ -57,11 +57,13 @@ func Handle(app *entry.App, store sessions.Store, logger *slog.Logger) http.Hand
 			logger.Info("failed to get session", "error", err)
 		} else {
 			sess.Values["uid"] = user.ID
+			// Set Secure flag only when request is over TLS so local dev HTTP works
+			secure := r.TLS != nil
 			sess.Options = &sessions.Options{
 				Path:     "/",
 				HttpOnly: true,
 				MaxAge:   60 * 60 * 12, // 12 hours
-				Secure:   true,
+				Secure:   secure,
 				SameSite: http.SameSiteStrictMode,
 			}
 			if err := sess.Save(r, w); err != nil {
