@@ -55,7 +55,13 @@ func (s *Store) UserGetByEmail(ctx context.Context, email string) (*entry.StoreU
 // UserCreate implements entry.UserStore
 func (s *Store) UserCreate(ctx context.Context, u *entry.StoreUser) (*entry.StoreUser, error) {
 	now := time.Now().Unix()
-	res, err := s.db.ExecContext(ctx, `INSERT INTO users (condominium_id, first_name, last_name, email, password, role, enabled, hidden, created_at, updated_at, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, u.CondominiumID, u.FirstName, u.LastName, u.Email, u.PasswordHash, u.Role, u.Enabled, u.Hidden, now, now, u.CreatedBy, u.UpdatedBy)
+	var condoID interface{}
+	if u.CondominiumID == 0 {
+		condoID = nil
+	} else {
+		condoID = u.CondominiumID
+	}
+	res, err := s.db.ExecContext(ctx, `INSERT INTO users (condominium_id, first_name, last_name, email, password, role, enabled, hidden, created_at, updated_at, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, condoID, u.FirstName, u.LastName, u.Email, u.PasswordHash, u.Role, u.Enabled, u.Hidden, now, now, u.CreatedBy, u.UpdatedBy)
 	if err != nil {
 		return nil, err
 	}
