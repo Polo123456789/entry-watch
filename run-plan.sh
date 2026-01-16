@@ -30,5 +30,7 @@ while [ ! -f $FINISH_FILE ]; do
     fi
 done
 
+notify-send -u critical "Plan Finished" "The plan '$PLAN' has been completed after $ITERATION_COUNT iterations."
+
 echo "Plan finished successfully."
 echo "Iterated $ITERATION_COUNT times."
