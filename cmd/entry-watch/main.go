@@ -34,7 +34,14 @@ func main() {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
-	app := entry.NewApp(logger, nil)
+	store := entry.NewMemStore()
+	app := entry.NewApp(logger, store)
+
+	// Ensure a bootstrap superadmin exists in the store
+	if err := app.BootstrapSuperadmin(ctx); err != nil {
+		logger.Error("bootstrap superadmin failed", "error", err)
+		os.Exit(1)
+	}
 
 	server := http.NewServer(
 		"0.0.0.0",
