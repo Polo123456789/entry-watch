@@ -11,15 +11,17 @@ import (
 	"github.com/Polo123456789/entry-watch/internal/http/superadmin"
 	"github.com/Polo123456789/entry-watch/internal/http/user"
 	"github.com/Polo123456789/entry-watch/web"
+	"github.com/gorilla/sessions"
 )
 
 func setupRoutes(
 	mux *http.ServeMux,
 	app *entry.App,
+	store sessions.Store,
 	logger *slog.Logger,
 ) {
 	// TODO: mux.Handle("/", public.Handle(app, logger)) Is this needed?
-	mux.Handle("/auth/", auth.Handle(app, logger))
+	mux.Handle("/auth/", auth.Handle(app, store, logger))
 	mux.Handle("/super/", superadmin.Handle(app, logger))
 	mux.Handle("/admin/", admin.Handle(app, logger))
 	mux.Handle("/guard/", guard.Handle(app, logger))

@@ -1,16 +1,15 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/gorilla/sessions"
 	"log/slog"
 )
 
 // Handle mounts auth routes under /auth/
-func Handle(app *entry.App, logger *slog.Logger) http.Handler {
+func Handle(app *entry.App, store sessions.Store, logger *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/auth/login", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
@@ -49,16 +48,23 @@ func Handle(app *entry.App, logger *slog.Logger) http.Handler {
 			return
 		}
 
-		// set cookie with uid
-		c := &http.Cookie{
-			Name:     "entrywatch_uid",
-			Value:    fmt.Sprintf("%d", user.ID),
-			Path:     "/",
-			HttpOnly: true,
-			MaxAge:   60 * 60 * 12, // 12 hours
-			Expires:  time.Now().Add(12 * time.Hour),
+		// set session with uid
+		sess, err := store.Get(r, "entrywatch_session")
+		if err != nil {
+			logger.Info("failed to get session", "error", err)
+		} else {
+			sess.Values["uid"] = user.ID
+			sess.Options = &sessions.Options{
+				Path:     "/",
+				HttpOnly: true,
+				MaxAge:   60 * 60 * 12, // 12 hours
+				// Secure:   true,
+				SameSite: http.SameSiteStrictMode,
+			}
+			if err := sess.Save(r, w); err != nil {
+				logger.Info("failed to save session", "error", err)
+			}
 		}
-		http.SetCookie(w, c)
 
 		// redirect based on role
 		switch user.Role {
@@ -74,16 +80,11 @@ func Handle(app *entry.App, logger *slog.Logger) http.Handler {
 	})
 
 	mux.HandleFunc("/auth/logout", func(w http.ResponseWriter, r *http.Request) {
-		// clear cookie
-		c := &http.Cookie{
-			Name:     "entrywatch_uid",
-			Value:    "",
-			Path:     "/",
-			HttpOnly: true,
-			MaxAge:   -1,
-			Expires:  time.Unix(0, 0),
+		sess, err := store.Get(r, "entrywatch_session")
+		if err == nil && sess != nil {
+			sess.Options = &sessions.Options{Path: "/", MaxAge: -1}
+			_ = sess.Save(r, w)
 		}
-		http.SetCookie(w, c)
 		http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 	})
 

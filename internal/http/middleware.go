@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/sessions"
+
 	"github.com/Polo123456789/entry-watch/internal/entry"
 )
 
@@ -19,28 +21,30 @@ func (w *wrappedWritter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-func CanonicalLoggerMiddleware(logger *slog.Logger, app *entry.App, next http.Handler) http.Handler {
+func CanonicalLoggerMiddleware(logger *slog.Logger, app *entry.App, store sessions.Store, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		ww := &wrappedWritter{w, http.StatusOK}
 
-		// Attempt to authenticate user from a simple cookie-backed uid.
-		// Cookie name: entrywatch_uid (stores numeric user id)
+		// Attempt to authenticate user from session-backed uid.
 		ctx := r.Context()
-		if app != nil {
-			if c, err := r.Cookie("entrywatch_uid"); err == nil {
-				// parse numeric id
-				var uid int64
-				_, err := fmt.Sscanf(c.Value, "%d", &uid)
-				if err == nil && uid > 0 {
-					if su, err := app.UserGetByID(ctx, uid); err == nil && su != nil && su.Enabled {
-						ctx = entry.WithUser(ctx, &entry.User{
-							ID:            su.ID,
-							CondominiumID: su.CondominiumID,
-							Role:          su.Role,
-							Enabled:       su.Enabled,
-						})
+		if app != nil && store != nil {
+			sess, err := store.Get(r, "entrywatch_session")
+			if err == nil && sess != nil {
+				if v, ok := sess.Values["uid"]; ok {
+					// robustly parse numeric value
+					var uid int64
+					_, err := fmt.Sscanf(fmt.Sprintf("%v", v), "%d", &uid)
+					if err == nil && uid > 0 {
+						if su, err := app.UserGetByID(ctx, uid); err == nil && su != nil && su.Enabled {
+							ctx = entry.WithUser(ctx, &entry.User{
+								ID:            su.ID,
+								CondominiumID: su.CondominiumID,
+								Role:          su.Role,
+								Enabled:       su.Enabled,
+							})
+						}
 					}
 				}
 			}

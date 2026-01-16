@@ -10,6 +10,7 @@ import (
 
 	"github.com/Polo123456789/assert"
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/gorilla/sessions"
 )
 
 func NewServer(
@@ -24,15 +25,18 @@ func NewServer(
 
 	mux := http.NewServeMux()
 
+	// create session store (use a default key for dev; in prod, set env-driven key)
+	store := sessions.NewCookieStore([]byte("dev-secret-key-please-change"))
 	setupRoutes(
 		mux,
 		app,
+		store,
 		logger,
 	)
 
 	// Global middlewares
 	var handler http.Handler = mux
-	handler = CanonicalLoggerMiddleware(logger, app, handler)
+	handler = CanonicalLoggerMiddleware(logger, app, store, handler)
 	handler = RecoverMiddleware(logger, handler)
 
 	server := &http.Server{
