@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -26,7 +27,11 @@ func NewServer(
 	mux := http.NewServeMux()
 
 	// create session store (use a default key for dev; in prod, set env-driven key)
-	store := sessions.NewCookieStore([]byte("dev-secret-key-please-change"))
+	key := os.Getenv("ENTRYWATCH_SESSION_KEY")
+	if key == "" {
+		key = "dev-secret-key-please-change"
+	}
+	store := sessions.NewCookieStore([]byte(key))
 	setupRoutes(
 		mux,
 		app,
