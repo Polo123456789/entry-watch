@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 )
 
 // UserStore wraps SQLC queries to provide user-related operations.
-// This implements auth.UserStore interface directly.
+// This implements auth.UserStore interface.
 type UserStore struct {
 	queries *Queries
 }
@@ -24,23 +25,29 @@ func NewUserStore(db *sql.DB) *UserStore {
 
 // GetByEmail retrieves a user by email along with the password hash.
 // Implements auth.UserStore.
-func (s *UserStore) GetByEmail(ctx context.Context, email string) (entry.UserWithPassword, bool, error) {
+func (s *UserStore) GetByEmail(ctx context.Context, email string) (auth.UserWithPassword, bool, error) {
 	user, err := s.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return entry.UserWithPassword{}, false, nil
+			return auth.UserWithPassword{}, false, nil
 		}
-		return entry.UserWithPassword{}, false, err
+		return auth.UserWithPassword{}, false, err
 	}
 
-	return entry.UserWithPassword{
-		User:         convertUserToDomain(user),
+	return auth.UserWithPassword{
+		User: &auth.User{
+			ID:            user.ID,
+			CondominiumID: getInt64FromNullInt64(user.CondominiumID),
+			Role:          entry.UserRole(user.Role),
+			Enabled:       user.Enabled,
+		},
 		PasswordHash: user.Password,
 	}, true, nil
 }
 
 // GetByID retrieves a user by ID.
-func (s *UserStore) GetByID(ctx context.Context, id int64) (*entry.User, bool, error) {
+// Implements auth.UserStore.
+func (s *UserStore) GetByID(ctx context.Context, id int64) (*auth.User, bool, error) {
 	user, err := s.queries.GetUserByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -49,11 +56,17 @@ func (s *UserStore) GetByID(ctx context.Context, id int64) (*entry.User, bool, e
 		return nil, false, err
 	}
 
-	return convertUserToDomain(user), true, nil
+	return &auth.User{
+		ID:            user.ID,
+		CondominiumID: getInt64FromNullInt64(user.CondominiumID),
+		Role:          entry.UserRole(user.Role),
+		Enabled:       user.Enabled,
+	}, true, nil
 }
 
 // CreateUser creates a new user with the given password hash.
-func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName string, user *entry.User, passwordHash string) error {
+// Implements auth.UserStore.
+func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName string, user *auth.User, passwordHash string) error {
 	now := time.Now().Unix()
 
 	var condoID sql.NullInt64
@@ -79,21 +92,15 @@ func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName s
 }
 
 // CountSuperAdmins returns the number of enabled superadmins.
+// Implements auth.UserStore.
 func (s *UserStore) CountSuperAdmins(ctx context.Context) (int64, error) {
 	return s.queries.CountSuperAdmins(ctx)
 }
 
-// convertUserToDomain converts a SQLC User to an entry.User.
-func convertUserToDomain(u User) *entry.User {
-	user := &entry.User{
-		ID:      u.ID,
-		Role:    entry.UserRole(u.Role),
-		Enabled: u.Enabled,
+// getInt64FromNullInt64 safely extracts int64 from sql.NullInt64.
+func getInt64FromNullInt64(n sql.NullInt64) int64 {
+	if n.Valid {
+		return n.Int64
 	}
-
-	if u.CondominiumID.Valid {
-		user.CondominiumID = u.CondominiumID.Int64
-	}
-
-	return user
+	return 0
 }

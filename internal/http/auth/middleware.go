@@ -25,7 +25,8 @@ func AuthMiddleware(
 				return
 			}
 
-			ctx := entry.WithUser(r.Context(), user)
+			// Convert auth.User to entry.User for domain layer compatibility
+			ctx := entry.WithUser(r.Context(), toEntryUser(user))
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

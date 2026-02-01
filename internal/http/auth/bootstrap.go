@@ -40,7 +40,7 @@ func EnsureSuperAdminExists(store UserStore, logger *slog.Logger) error {
 		return err
 	}
 
-	user := &entry.User{
+	user := &User{
 		Role:          entry.RoleSuperAdmin,
 		Enabled:       true,
 		CondominiumID: 0,

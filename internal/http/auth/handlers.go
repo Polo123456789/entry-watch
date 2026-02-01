@@ -86,8 +86,12 @@ func attemptLogin(
 	store UserStore,
 	email string,
 	password string,
-) (*entry.User, error) {
-	wrongCredsErr := entry.NewUserSafeError("Correo electrónico o contraseña incorrectos")
+) (*User, error) {
+	// Use generic error to prevent user enumeration
+	wrongCredsErr := util.NewErrorWithCode(
+		"Correo electrónico o contraseña incorrectos",
+		http.StatusBadRequest,
+	)
 
 	userWithPass, ok, err := store.GetByEmail(ctx, email)
 	if err != nil {
@@ -99,7 +103,10 @@ func attemptLogin(
 	}
 
 	if !userWithPass.Enabled {
-		return nil, entry.NewUserSafeError("La cuenta está deshabilitada")
+		return nil, util.NewErrorWithCode(
+			"La cuenta está deshabilitada",
+			http.StatusBadRequest,
+		)
 	}
 
 	err = bcrypt.CompareHashAndPassword(
@@ -117,7 +124,7 @@ func setCurrentUser(
 	w http.ResponseWriter,
 	r *http.Request,
 	session sessions.Store,
-	user *entry.User,
+	user *User,
 ) error {
 	s, err := session.Get(r, authSessionKey)
 	if err != nil {
@@ -137,10 +144,12 @@ func setCurrentUser(
 	return s.Save(r, w)
 }
 
+// CurrentUser retrieves the user from the session.
+// Returns an auth.User which can be converted to entry.User with toEntryUser().
 func CurrentUser(
 	session sessions.Store,
 	r *http.Request,
-) (*entry.User, bool) {
+) (*User, bool) {
 	s, _ := session.Get(r, authSessionKey)
 
 	userID, ok := s.Values["user_id"].(int64)
@@ -156,7 +165,7 @@ func CurrentUser(
 	condoID, _ := s.Values["condominium_id"].(int64)
 	enabled, _ := s.Values["enabled"].(bool)
 
-	return &entry.User{
+	return &User{
 		ID:            userID,
 		Role:          entry.UserRole(roleStr),
 		CondominiumID: condoID,
