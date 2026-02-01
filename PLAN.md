@@ -50,54 +50,57 @@ Implementar el sistema de autenticación completo en `internal/http/auth/` sigui
 
 ## Pending
 
-* Crear queries SQLC para usuarios en db/sqlc/users.sql
+*No hay tareas pendientes - el sistema de autenticación está completo*
+
+## Completed
+
+* ✅ Crear queries SQLC para usuarios en db/sqlc/users.sql
     * Subtasks:
-        * [ ] Crear archivo `db/sqlc/users.sql` con queries necesarias:
+        * ✅ Crear archivo `db/sqlc/users.sql` con queries necesarias:
             * `GetUserByEmail` - Buscar usuario por email
             * `GetUserByID` - Buscar usuario por ID
             * `CreateUser` - Crear nuevo usuario
             * `CountSuperAdmins` - Contar superadmins habilitados
             * `UpdateUserPassword` - Actualizar password
-        * [ ] Verificar que el schema de la tabla users tiene todos los campos necesarios
-        * [ ] Asegurar que los tipos coincidan con el domain model
+        * ✅ Verificar que el schema de la tabla users tiene todos los campos necesarios
+        * ✅ Asegurar que los tipos coincidan con el domain model
 
-* Generar código SQLC con make sqlc
+* ✅ Generar código SQLC con make sqlc
     * Subtasks:
-        * [ ] Ejecutar `make sqlc` para generar código
-        * [ ] Verificar que se generó `internal/sqlc/users.sql.go`
-        * [ ] Revisar que los tipos generados son correctos
+        * ✅ Ejecutar `make sqlc` para generar código
+        * ✅ Verificar que se generó `internal/sqlc/users.sql.go`
+        * ✅ Revisar que los tipos generados son correctos
 
-* Crear UserStore en internal/sqlc/user-store.go
+* ✅ Crear UserStore en internal/sqlc/user-store.go
     * Subtasks:
-        * [ ] Crear struct `userStore` que envuelva las queries SQLC generadas
-        * [ ] Implementar método `GetByEmail(ctx, email) (*entry.User, bool, error)`
-        * [ ] Implementar método `GetByID(ctx, id) (*entry.User, bool, error)`
-        * [ ] Implementar método `CreateUser(ctx, user, password) error` (hashear password con bcrypt)
-        * [ ] Implementar método `CountSuperAdmins(ctx) (int64, error)`
-        * [ ] Crear función constructor `NewUserStore(db) UserStore`
+        * ✅ Crear struct `UserStore` que envuelva las queries SQLC generadas
+        * ✅ Implementar método `GetByEmail(ctx, email) (entry.UserWithPassword, bool, error)`
+        * ✅ Implementar método `GetByID(ctx, id) (*entry.User, bool, error)`
+        * ✅ Implementar método `CreateUser(ctx, email, firstName, lastName, user, passwordHash) error`
+        * ✅ Implementar método `CountSuperAdmins(ctx) (int64, error)`
+        * ✅ Crear función constructor `NewUserStore(db) *UserStore`
 
-* Crear internal/http/auth/store.go con interface UserStore
+* ✅ Crear internal/http/auth/store.go con interface UserStore
     * Subtasks:
-        * [ ] Definir interface `UserStore` con los métodos necesarios
-        * [ ] Asegurar que la interface esté en el paquete auth (no en sqlc)
-        * [ ] Documentar la interface
+        * ✅ Definir interface `UserStore` con los métodos necesarios
+        * ✅ Asegurar que la interface esté en el paquete auth (no en sqlc)
+        * ✅ Documentar la interface
+        * ✅ Usar `entry.UserWithPassword` (movido a entry package para evitar ciclos de import)
 
-* Crear internal/http/auth/handlers.go (login/logout)
+* ✅ Crear internal/http/auth/handlers.go (login/logout)
     * Subtasks:
-        * [ ] Crear `hGetLogin(session, logger)` - Muestra formulario
-        * [ ] Crear `hPostLogin(session, store, logger)` - Valida credenciales
+        * ✅ Crear `hGetLogin(session, logger)` - Muestra formulario
+        * ✅ Crear `hPostLogin(session, store, logger)` - Valida credenciales
             * Usar `bcrypt.CompareHashAndPassword` para validar
             * Crear sesión con `gorilla/sessions`
             * Redirigir según rol del usuario
-        * [ ] Crear `hGetLogout(session)` - Invalida sesión
-        * [ ] Implementar helper `attemptLogin()` para validación de credenciales
-        * [ ] Crear helper `setCurrentUser()` para guardar en sesión
-        * [ ] Crear helper `getRedirectForRole()` para redirección según rol
+        * ✅ Crear `hGetLogout(session)` - Invalida sesión
+        * ✅ Implementar helper `attemptLogin()` para validación de credenciales
+        * ✅ Crear helper `setCurrentUser()` para guardar en sesión
+        * ✅ Crear helper `getRedirectForRole()` para redirección según rol
+        * ✅ Usar `entry.UserSafeError` para mensajes de error (movido a entry package)
 
-* Crear internal/http/auth/middleware.go (AuthMiddleware)
-    * Subtasks:
-        * [ ] Crear `AuthMiddleware(session Store, store UserStore, logger) http.Handler`
-            * Leer cookie de sesión
+* ✅ Crear internal/http/auth/middleware.go (AuthMiddleware)
             * Recuperar user ID de la sesión
             * Buscar usuario en DB
             * Inyectar usuario en contexto con `entry.WithUser()`
