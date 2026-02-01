@@ -10,7 +10,7 @@ import (
 )
 
 // UserStore wraps SQLC queries to provide user-related operations.
-// This is used by the auth package to implement auth.UserStore.
+// This implements auth.UserStore interface directly.
 type UserStore struct {
 	queries *Queries
 }
@@ -23,16 +23,20 @@ func NewUserStore(db *sql.DB) *UserStore {
 }
 
 // GetByEmail retrieves a user by email along with the password hash.
-func (s *UserStore) GetByEmail(ctx context.Context, email string) (*entry.User, string, bool, error) {
+// Implements auth.UserStore.
+func (s *UserStore) GetByEmail(ctx context.Context, email string) (entry.UserWithPassword, bool, error) {
 	user, err := s.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, "", false, nil
+			return entry.UserWithPassword{}, false, nil
 		}
-		return nil, "", false, err
+		return entry.UserWithPassword{}, false, err
 	}
 
-	return convertUserToDomain(user), user.Password, true, nil
+	return entry.UserWithPassword{
+		User:         convertUserToDomain(user),
+		PasswordHash: user.Password,
+	}, true, nil
 }
 
 // GetByID retrieves a user by ID.

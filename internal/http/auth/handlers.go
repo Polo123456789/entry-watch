@@ -15,19 +15,6 @@ import (
 
 const authSessionKey = "entry-watch-auth"
 
-// UserSafeError creates user-safe error messages in Spanish
-type UserSafeError struct {
-	msg string
-}
-
-func (e *UserSafeError) Error() string {
-	return e.msg
-}
-
-func NewUserSafeError(msg string) *UserSafeError {
-	return &UserSafeError{msg: msg}
-}
-
 func hGetLogin(
 	session sessions.Store,
 	logger *slog.Logger,
@@ -100,7 +87,7 @@ func attemptLogin(
 	email string,
 	password string,
 ) (*entry.User, error) {
-	wrongCredsErr := NewUserSafeError("Correo electrónico o contraseña incorrectos")
+	wrongCredsErr := entry.NewUserSafeError("Correo electrónico o contraseña incorrectos")
 
 	userWithPass, ok, err := store.GetByEmail(ctx, email)
 	if err != nil {
@@ -112,7 +99,7 @@ func attemptLogin(
 	}
 
 	if !userWithPass.Enabled {
-		return nil, NewUserSafeError("La cuenta está deshabilitada")
+		return nil, entry.NewUserSafeError("La cuenta está deshabilitada")
 	}
 
 	err = bcrypt.CompareHashAndPassword(

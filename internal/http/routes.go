@@ -1,7 +1,6 @@
 package http
 
 import (
-	"database/sql"
 	"log/slog"
 	"net/http"
 
@@ -21,9 +20,9 @@ func setupRoutes(
 	app *entry.App,
 	logger *slog.Logger,
 	session sessions.Store,
-	db *sql.DB,
+	userStore auth.UserStore,
 ) {
-	mux.Handle("/auth/", auth.Handle(app, logger, session, db))
+	mux.Handle("/auth/", auth.Handle(app, logger, session, userStore))
 	mux.Handle("/super/", superadmin.Handle(app, logger))
 	mux.Handle("/admin/", admin.Handle(app, logger))
 	mux.Handle("/guard/", guard.Handle(app, logger))

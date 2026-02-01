@@ -54,21 +54,33 @@ func main() {
 	app := entry.NewApp(logger, store)
 
 	userStore := sqlc.NewUserStore(db)
-	authStore := auth.NewSQLCUserStore(userStore)
 
-	if err := auth.EnsureSuperAdminExists(authStore, logger); err != nil {
+	if err := auth.EnsureSuperAdminExists(userStore, logger); err != nil {
 		logger.Error("Failed to ensure superadmin exists", "error", err)
 		os.Exit(1)
 	}
 
-	sessionStore := sessions.NewCookieStore([]byte("entry-watch-secret-change-in-prod"))
+	sessionKey := os.Getenv("SESSION_KEY")
+	if len(sessionKey) < 32 {
+		logger.Error("SESSION_KEY environment variable must be set with at least 32 characters")
+		os.Exit(1)
+	}
+
+	secureCookies := !DEBUG || os.Getenv("FORCE_SECURE_COOKIES") == "true"
+
+	sessionStore := sessions.NewCookieStore([]byte(sessionKey))
 	sessionStore.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   60 * 60 * 12,
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   secureCookies,
 		SameSite: http.SameSiteLaxMode,
 	}
+
+	logger.Info("Session store configured",
+		"secure", secureCookies,
+		"same_site", "Lax",
+	)
 
 	server := apphttp.NewServer(
 		"0.0.0.0",
@@ -76,7 +88,7 @@ func main() {
 		app,
 		logger,
 		sessionStore,
-		db,
+		userStore,
 	)
 
 	apphttp.RunServer(ctx, cancel, server, logger)

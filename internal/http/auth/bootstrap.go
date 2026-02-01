@@ -27,9 +27,9 @@ func EnsureSuperAdminExists(store UserStore, logger *slog.Logger) error {
 		return nil
 	}
 
-	logger.Warn("No superadmin found, creating default superadmin",
+	logger.Warn("No superadmin found - creating default account",
 		"email", "admin@localhost",
-		"password", "changeme",
+		"warning", "CHANGE PASSWORD IMMEDIATELY AFTER FIRST LOGIN",
 	)
 
 	passwordHash, err := bcrypt.GenerateFromPassword(

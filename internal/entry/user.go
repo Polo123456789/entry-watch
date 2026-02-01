@@ -73,3 +73,24 @@ func RequireRoleAndCondo(
 	}
 	return user, nil
 }
+
+// UserWithPassword extends User with the password hash for authentication.
+type UserWithPassword struct {
+	*User
+	PasswordHash string
+}
+
+// UserSafeError represents an error that can be safely shown to users.
+// These errors are typically caused by user input and don't expose system details.
+type UserSafeError struct {
+	Msg string
+}
+
+func (e *UserSafeError) Error() string {
+	return e.Msg
+}
+
+// NewUserSafeError creates a new user-safe error with the given message.
+func NewUserSafeError(msg string) *UserSafeError {
+	return &UserSafeError{Msg: msg}
+}
