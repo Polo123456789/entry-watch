@@ -44,7 +44,11 @@ func main() {
 		logger.Error("Failed to open database", "error", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Error("Failed to close database", "error", err)
+		}
+	}()
 
 	store := sqlc.NewStore(db)
 	app := entry.NewApp(logger, store)
