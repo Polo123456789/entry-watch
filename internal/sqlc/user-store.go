@@ -7,36 +7,36 @@ import (
 	"time"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
-	"github.com/Polo123456789/entry-watch/internal/http/auth"
 )
 
-type userStore struct {
+// UserStore wraps SQLC queries to provide user-related operations.
+// This is used by the auth package to implement auth.UserStore.
+type UserStore struct {
 	queries *Queries
 }
 
 // NewUserStore creates a new UserStore that wraps the SQLC queries.
-func NewUserStore(db *sql.DB) auth.UserStore {
-	return &userStore{
+func NewUserStore(db *sql.DB) *UserStore {
+	return &UserStore{
 		queries: New(db),
 	}
 }
 
-func (s *userStore) GetByEmail(ctx context.Context, email string) (auth.UserWithPassword, bool, error) {
+// GetByEmail retrieves a user by email along with the password hash.
+func (s *UserStore) GetByEmail(ctx context.Context, email string) (*entry.User, string, bool, error) {
 	user, err := s.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return auth.UserWithPassword{}, false, nil
+			return nil, "", false, nil
 		}
-		return auth.UserWithPassword{}, false, err
+		return nil, "", false, err
 	}
 
-	return auth.UserWithPassword{
-		User:         convertUserToDomain(user),
-		PasswordHash: user.Password,
-	}, true, nil
+	return convertUserToDomain(user), user.Password, true, nil
 }
 
-func (s *userStore) GetByID(ctx context.Context, id int64) (*entry.User, bool, error) {
+// GetByID retrieves a user by ID.
+func (s *UserStore) GetByID(ctx context.Context, id int64) (*entry.User, bool, error) {
 	user, err := s.queries.GetUserByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -48,7 +48,8 @@ func (s *userStore) GetByID(ctx context.Context, id int64) (*entry.User, bool, e
 	return convertUserToDomain(user), true, nil
 }
 
-func (s *userStore) CreateUser(ctx context.Context, email, firstName, lastName string, user *entry.User, passwordHash string) error {
+// CreateUser creates a new user with the given password hash.
+func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName string, user *entry.User, passwordHash string) error {
 	now := time.Now().Unix()
 
 	var condoID sql.NullInt64
@@ -73,7 +74,8 @@ func (s *userStore) CreateUser(ctx context.Context, email, firstName, lastName s
 	})
 }
 
-func (s *userStore) CountSuperAdmins(ctx context.Context) (int64, error) {
+// CountSuperAdmins returns the number of enabled superadmins.
+func (s *UserStore) CountSuperAdmins(ctx context.Context) (int64, error) {
 	return s.queries.CountSuperAdmins(ctx)
 }
 
