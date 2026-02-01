@@ -16,38 +16,46 @@ The authentication system has been fully implemented following the patterns from
 - `internal/sqlc/store.go` - Main Store implementation for entry.Store interface
 
 ### 2. Auth Package (`internal/http/auth/`)
-- `store.go` - UserStore interface definition with UserWithPassword
-- `store_sqlc.go` - Adapter to convert sqlc.UserStore to auth.UserStore
+- `store.go` - UserStore interface definition
 - `handlers.go` - Login/logout handlers with bcrypt password verification
 - `middleware.go` - AuthMiddleware, RedirectIfAuthenticated, RequireRole helpers
 - `bootstrap.go` - EnsureSuperAdminExists for creating default superadmin
 - `routes.go` - Route setup for /auth/login and /auth/logout
 
-### 3. Templates
+### 3. Domain Types (`internal/entry/`)
+- `UserWithPassword` - Extended user type with password hash
+- `UserSafeError` - User-facing error type (moved from auth package)
+
+### 4. Templates
 - `internal/templates/auth/login.templ` - Login page template
 - Generated: `internal/templates/auth/login_templ.go`
 
-### 4. Integration
+### 5. Integration
 - `internal/http/routes.go` - Added auth routes
-- `internal/http/server.go` - Updated to accept session store and database
+- `internal/http/server.go` - Updated to accept session store and user store
 - `internal/http/middleware.go` - Removed mock user injection
+- `internal/http/util/handler.go` - Added UserSafeError handling
 - `cmd/entry-watch/main.go` - Wired everything together with SQLite and session store
 - `internal/entry/app.go` - Added Store() method to export store
 
-## Features
+## Security Features
 
 - **Session-based authentication** using gorilla/sessions with CookieStore
 - **Password hashing** using bcrypt with DefaultCost
-- **Login by email** with role-based redirects:
-  - superadmin → /super/
-  - admin → /admin/
-  - guard → /guard/
-  - user → /neighbor/
-- **Default superadmin** created on first run:
-  - Email: admin@localhost
-  - Password: changeme
-- **Secure session cookies** (HTTP-only, 12-hour expiry)
-- **Spanish error messages** for user-facing errors
+- **Session key from environment** (`SESSION_KEY`, minimum 32 characters required)
+- **Secure cookie flag** - Configurable via `FORCE_SECURE_COOKIES` env var (auto-enabled when DEBUG=false)
+- **HTTP-only cookies** - Prevents XSS attacks
+- **SameSite=Lax** - CSRF protection for cross-origin requests
+- **No password logging** - Credentials never appear in logs
+- **Generic error messages** - Prevents user enumeration attacks
+
+## Default Credentials
+
+On first startup, a default superadmin is created:
+- **Email:** admin@localhost
+- **Password:** changeme
+
+**WARNING:** Change the password immediately after first login!
 
 ## Routes
 
@@ -55,13 +63,25 @@ The authentication system has been fully implemented following the patterns from
 - `POST /auth/login` - Validates credentials and creates session
 - `GET /auth/logout` - Destroys session and redirects to login
 
+## Environment Variables
+
+- `SESSION_KEY` - **Required.** Secret key for session encryption (min 32 chars)
+- `FORCE_SECURE_COOKIES` - Set to `true` to force secure cookies even in DEBUG mode
+
 ## Testing
 
 All code passes:
 - `go vet ./...`
-- `golangci-lint run`
-- `govulncheck ./...`
+- `golangci-lint run` (0 issues)
+- `govulncheck ./...` (0 vulnerabilities in code)
 - `go test -tags assert -race -buildvcs -vet=off ./...`
+
+## Architecture Decisions
+
+1. **No adapter pattern** - sqlc.UserStore implements auth.UserStore directly to avoid unnecessary abstraction
+2. **Domain types in entry package** - UserWithPassword and UserSafeError live with other domain types
+3. **UserStore passed directly** - Routes receive UserStore instead of creating it from db
+4. **Spanish error messages** - User-facing errors in Spanish per AGENTS.md guidelines
 
 ## Next Steps (Not in Scope)
 
@@ -71,3 +91,6 @@ All code passes:
 - Add "remember me" functionality
 - Add session persistence to database
 - Implement proper visit creation (currently stubbed)
+- Add rate limiting for login attempts
+- Add CSRF tokens for forms
+- Regenerate session ID on login (session fixation protection)
