@@ -21,16 +21,19 @@ func NewUserStore(db *sql.DB) auth.UserStore {
 	}
 }
 
-func (s *userStore) GetByEmail(ctx context.Context, email string) (*entry.User, bool, error) {
+func (s *userStore) GetByEmail(ctx context.Context, email string) (auth.UserWithPassword, bool, error) {
 	user, err := s.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, false, nil
+			return auth.UserWithPassword{}, false, nil
 		}
-		return nil, false, err
+		return auth.UserWithPassword{}, false, err
 	}
 
-	return convertUserToDomain(user), true, nil
+	return auth.UserWithPassword{
+		User:         convertUserToDomain(user),
+		PasswordHash: user.Password,
+	}, true, nil
 }
 
 func (s *userStore) GetByID(ctx context.Context, id int64) (*entry.User, bool, error) {

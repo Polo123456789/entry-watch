@@ -6,14 +6,21 @@ import (
 	"github.com/Polo123456789/entry-watch/internal/entry"
 )
 
+// UserWithPassword extends entry.User with the password hash for authentication.
+type UserWithPassword struct {
+	*entry.User
+	PasswordHash string
+}
+
 // UserStore defines the interface for user storage operations.
 // Implementations are responsible for converting between the SQLC model
-// and the domain model (entry.User).
+// and the domain model.
 type UserStore interface {
 	// GetByEmail retrieves a user by their email address.
-	// Returns (nil, false, nil) if the user is not found.
-	// Returns (nil, false, error) if there is a database error.
-	GetByEmail(ctx context.Context, email string) (*entry.User, bool, error)
+	// Returns the user with password hash for authentication.
+	// Returns (UserWithPassword{}, false, nil) if the user is not found.
+	// Returns (UserWithPassword{}, false, error) if there is a database error.
+	GetByEmail(ctx context.Context, email string) (UserWithPassword, bool, error)
 
 	// GetByID retrieves a user by their ID.
 	// Returns (nil, false, nil) if the user is not found.
