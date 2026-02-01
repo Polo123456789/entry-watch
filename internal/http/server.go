@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/Polo123456789/assert"
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/gorilla/sessions"
 )
 
 func NewServer(
@@ -17,6 +19,8 @@ func NewServer(
 	port int,
 	app *entry.App,
 	logger *slog.Logger,
+	session sessions.Store,
+	db *sql.DB,
 ) *http.Server {
 	assert.NotEquals(address, "")
 	assert.MoreThan(port, 0)
@@ -28,6 +32,8 @@ func NewServer(
 		mux,
 		app,
 		logger,
+		session,
+		db,
 	)
 
 	// Global middlewares
