@@ -43,7 +43,7 @@ func main() {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
-	db, err := sql.Open("sqlite", "./db/db.sqlite")
+	db, err := sql.Open("sqlite", "./data/db.sqlite")
 	if err != nil {
 		logger.Error("Failed to open database", "error", err)
 		os.Exit(1)
