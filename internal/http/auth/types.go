@@ -7,12 +7,18 @@ import (
 )
 
 // User represents an authenticated user in the auth system.
+// This mirrors the database schema from db/migrations/20251123181233_init.sql
 // This is separate from entry.User to maintain domain separation.
 type User struct {
 	ID            int64
 	CondominiumID int64
+	FirstName     string
+	LastName      string
+	Email         string
+	Phone         string
 	Role          entry.UserRole
 	Enabled       bool
+	Hidden        bool
 }
 
 // UserWithPassword extends User with the password hash for authentication.
@@ -68,7 +74,12 @@ func toEntryUser(u *User) *entry.User {
 	return &entry.User{
 		ID:            u.ID,
 		CondominiumID: u.CondominiumID,
+		FirstName:     u.FirstName,
+		LastName:      u.LastName,
+		Email:         u.Email,
+		Phone:         u.Phone,
 		Role:          u.Role,
 		Enabled:       u.Enabled,
+		Hidden:        u.Hidden,
 	}
 }

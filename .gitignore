@@ -2,3 +2,5 @@
 tmp/
 *_templ.go
 *.sql.go
+.env
+db/db.sqlite

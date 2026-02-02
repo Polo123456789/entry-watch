@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/gorilla/sessions"
+	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
@@ -18,10 +19,13 @@ import (
 	"github.com/Polo123456789/entry-watch/internal/sqlc"
 )
 
-// Set in config, you set that
-const DEBUG = true
+// DEBUG controls logging level and is set via environment variable
+var DEBUG = os.Getenv("DEBUG") == "true"
 
 func main() {
+	// Load .env file if it exists
+	_ = godotenv.Load()
+
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt, os.Kill,
@@ -39,7 +43,7 @@ func main() {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
-	db, err := sql.Open("sqlite", "./entry-watch.db")
+	db, err := sql.Open("sqlite", "./db/db.sqlite")
 	if err != nil {
 		logger.Error("Failed to open database", "error", err)
 		os.Exit(1)
@@ -66,19 +70,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	secureCookies := !DEBUG || os.Getenv("FORCE_SECURE_COOKIES") == "true"
-
 	sessionStore := sessions.NewCookieStore([]byte(sessionKey))
 	sessionStore.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   60 * 60 * 12,
 		HttpOnly: true,
-		Secure:   secureCookies,
+		Secure:   true, // Always secure (required by Chrome)
 		SameSite: http.SameSiteLaxMode,
 	}
 
 	logger.Info("Session store configured",
-		"secure", secureCookies,
+		"secure", true,
 		"same_site", "Lax",
 	)
 

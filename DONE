@@ -1,6 +1,6 @@
 # Authentication System Implementation - COMPLETED
 
-Date: 2026-02-01
+Date: 2026-02-02
 Branch: feature/auth-implementation
 
 ## Summary
@@ -12,25 +12,31 @@ The authentication system has been fully implemented following the patterns from
 ### 1. Database Layer (SQLC)
 - `db/sqlc/users.sql` - SQL queries for user operations
 - `internal/sqlc/users.sql.go` - Generated SQLC code
-- `internal/sqlc/user-store.go` - UserStore implementation
+- `internal/sqlc/user-store.go` - UserStore implementation with full schema mapping
 - `internal/sqlc/store.go` - Main Store implementation for entry.Store interface
 
 ### 2. Auth Package (`internal/http/auth/`)
-- `store.go` - UserStore interface definition
+- `types.go` - User type, UserWithPassword, UserSafeError, UserStore interface, and helper functions
 - `handlers.go` - Login/logout handlers with bcrypt password verification
 - `middleware.go` - AuthMiddleware, RedirectIfAuthenticated, RequireRole helpers
 - `bootstrap.go` - EnsureSuperAdminExists for creating default superadmin
 - `routes.go` - Route setup for /auth/login and /auth/logout
 
 ### 3. Domain Types (`internal/entry/`)
-- `UserWithPassword` - Extended user type with password hash
-- `UserSafeError` - User-facing error type (moved from auth package)
+- `User` - Domain user type with all fields from DB schema
+- `UserWithPassword` - Extended user type with password hash (in auth package)
+- `UserSafeError` - User-facing error type (in auth package)
 
 ### 4. Templates
 - `internal/templates/auth/login.templ` - Login page template
 - Generated: `internal/templates/auth/login_templ.go`
 
-### 5. Integration
+### 5. Configuration Files
+- `.env` - Environment variables (not committed, in .gitignore)
+- `.env.example` - Example environment file
+- `.gitignore` - Updated to exclude .env and db/db.sqlite
+
+### 6. Integration
 - `internal/http/routes.go` - Added auth routes
 - `internal/http/server.go` - Updated to accept session store and user store
 - `internal/http/middleware.go` - Removed mock user injection
@@ -43,11 +49,25 @@ The authentication system has been fully implemented following the patterns from
 - **Session-based authentication** using gorilla/sessions with CookieStore
 - **Password hashing** using bcrypt with DefaultCost
 - **Session key from environment** (`SESSION_KEY`, minimum 32 characters required)
-- **Secure cookie flag** - Configurable via `FORCE_SECURE_COOKIES` env var (auto-enabled when DEBUG=false)
+- **Always secure cookies** - Secure flag always true (required by Chrome since 2023)
 - **HTTP-only cookies** - Prevents XSS attacks
 - **SameSite=Lax** - CSRF protection for cross-origin requests
 - **No password logging** - Credentials never appear in logs
 - **Generic error messages** - Prevents user enumeration attacks
+- **Environment-based config** - Sensitive values in .env file (not committed)
+
+## User Schema
+
+Both `auth.User` and `entry.User` implement the full database schema:
+- `ID` - User ID (int64)
+- `CondominiumID` - Condominium association (int64)
+- `FirstName` - First name (string)
+- `LastName` - Last name (string)
+- `Email` - Email address (string)
+- `Phone` - Phone number (string)
+- `Role` - User role (superadmin, admin, guard, user)
+- `Enabled` - Account enabled flag (bool)
+- `Hidden` - Hidden/approval flag (bool)
 
 ## Default Credentials
 
@@ -65,8 +85,14 @@ On first startup, a default superadmin is created:
 
 ## Environment Variables
 
+Create a `.env` file (see `.env.example`):
+
 - `SESSION_KEY` - **Required.** Secret key for session encryption (min 32 chars)
-- `FORCE_SECURE_COOKIES` - Set to `true` to force secure cookies even in DEBUG mode
+- `DEBUG` - Set to `true` for verbose logging
+
+## Database Location
+
+SQLite database is stored at: `./db/db.sqlite`
 
 ## Testing
 
@@ -79,9 +105,11 @@ All code passes:
 ## Architecture Decisions
 
 1. **No adapter pattern** - sqlc.UserStore implements auth.UserStore directly to avoid unnecessary abstraction
-2. **Domain types in entry package** - UserWithPassword and UserSafeError live with other domain types
-3. **UserStore passed directly** - Routes receive UserStore instead of creating it from db
-4. **Spanish error messages** - User-facing errors in Spanish per AGENTS.md guidelines
+2. **Full schema mapping** - auth.User includes all fields from the database schema
+3. **Domain separation** - auth package defines its own User type, converts to entry.User for domain layer
+4. **Type conversion** - sqlc layer handles conversion between SQL null types and Go types
+5. **Spanish error messages** - User-facing errors in Spanish per AGENTS.md guidelines
+6. **Environment config** - Uses godotenv to load .env file, SESSION_KEY required
 
 ## Next Steps (Not in Scope)
 

@@ -38,8 +38,13 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (auth.UserWith
 		User: &auth.User{
 			ID:            user.ID,
 			CondominiumID: getInt64FromNullInt64(user.CondominiumID),
+			FirstName:     user.FirstName,
+			LastName:      user.LastName,
+			Email:         user.Email,
+			Phone:         getStringFromNullString(user.Phone),
 			Role:          entry.UserRole(user.Role),
 			Enabled:       user.Enabled,
+			Hidden:        user.Hidden,
 		},
 		PasswordHash: user.Password,
 	}, true, nil
@@ -59,8 +64,13 @@ func (s *UserStore) GetByID(ctx context.Context, id int64) (*auth.User, bool, er
 	return &auth.User{
 		ID:            user.ID,
 		CondominiumID: getInt64FromNullInt64(user.CondominiumID),
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		Email:         user.Email,
+		Phone:         getStringFromNullString(user.Phone),
 		Role:          entry.UserRole(user.Role),
 		Enabled:       user.Enabled,
+		Hidden:        user.Hidden,
 	}, true, nil
 }
 
@@ -103,4 +113,12 @@ func getInt64FromNullInt64(n sql.NullInt64) int64 {
 		return n.Int64
 	}
 	return 0
+}
+
+// getStringFromNullString safely extracts string from sql.NullString.
+func getStringFromNullString(n sql.NullString) string {
+	if n.Valid {
+		return n.String
+	}
+	return ""
 }
