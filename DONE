@@ -56,9 +56,10 @@ The authentication system has been fully implemented following the patterns from
 - **Generic error messages** - Prevents user enumeration attacks
 - **Environment-based config** - Sensitive values in .env file (not committed)
 
-## User Schema
+## User Types
 
-Both `auth.User` and `entry.User` implement the full database schema:
+### auth.User (Full Schema)
+Mirrors the complete database schema from migrations:
 - `ID` - User ID (int64)
 - `CondominiumID` - Condominium association (int64)
 - `FirstName` - First name (string)
@@ -68,6 +69,13 @@ Both `auth.User` and `entry.User` implement the full database schema:
 - `Role` - User role (superadmin, admin, guard, user)
 - `Enabled` - Account enabled flag (bool)
 - `Hidden` - Hidden/approval flag (bool)
+
+### entry.User (Domain Model)
+Contains only information needed for domain-level authorization:
+- `ID` - User ID (int64)
+- `CondominiumID` - Condominium association (int64)
+- `Role` - User role (UserRole)
+- `Enabled` - Account enabled flag (bool)
 
 ## Default Credentials
 
@@ -105,11 +113,12 @@ All code passes:
 ## Architecture Decisions
 
 1. **No adapter pattern** - sqlc.UserStore implements auth.UserStore directly to avoid unnecessary abstraction
-2. **Full schema mapping** - auth.User includes all fields from the database schema
-3. **Domain separation** - auth package defines its own User type, converts to entry.User for domain layer
-4. **Type conversion** - sqlc layer handles conversion between SQL null types and Go types
-5. **Spanish error messages** - User-facing errors in Spanish per AGENTS.md guidelines
-6. **Environment config** - Uses godotenv to load .env file, SESSION_KEY required
+2. **Domain model minimalism** - entry.User contains only fields needed for authorization (ID, CondominiumID, Role, Enabled)
+3. **Full schema in auth layer** - auth.User mirrors the complete database schema with all fields
+4. **Explicit conversion** - toEntryUser() extracts only the domain-relevant fields when passing to business logic
+5. **Type conversion** - sqlc layer handles conversion between SQL null types and Go types
+6. **Spanish error messages** - User-facing errors in Spanish per AGENTS.md guidelines
+7. **Environment config** - Uses godotenv to load .env file, SESSION_KEY required
 
 ## Next Steps (Not in Scope)
 

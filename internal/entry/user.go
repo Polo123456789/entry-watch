@@ -12,17 +12,12 @@ const (
 )
 
 // User represents a user in the domain layer.
-// Mirrors the database schema from db/migrations/20251123181233_init.sql
+// Contains only the information needed for domain-level authorization.
 type User struct {
 	ID            int64
 	CondominiumID int64
-	FirstName     string
-	LastName      string
-	Email         string
-	Phone         string
 	Role          UserRole
 	Enabled       bool
-	Hidden        bool
 }
 
 type userCtxKey struct{}

@@ -67,6 +67,7 @@ type UserStore interface {
 
 // toEntryUser converts an auth.User to an entry.User.
 // This is used when passing user data to the domain layer.
+// Only copies the fields needed for domain-level authorization.
 func toEntryUser(u *User) *entry.User {
 	if u == nil {
 		return nil
@@ -74,12 +75,7 @@ func toEntryUser(u *User) *entry.User {
 	return &entry.User{
 		ID:            u.ID,
 		CondominiumID: u.CondominiumID,
-		FirstName:     u.FirstName,
-		LastName:      u.LastName,
-		Email:         u.Email,
-		Phone:         u.Phone,
 		Role:          u.Role,
 		Enabled:       u.Enabled,
-		Hidden:        u.Hidden,
 	}
 }
