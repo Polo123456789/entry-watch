@@ -29,6 +29,7 @@ func main() {
 	)
 
 	debug := os.Getenv("DEBUG") == "true"
+	databaseURL := os.Getenv("DATABASE_URL")
 
 	var logger *slog.Logger
 	if debug {
@@ -42,7 +43,7 @@ func main() {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
-	db, err := sql.Open("sqlite", "./data/db.sqlite")
+	db, err := sql.Open("sqlite", databaseURL)
 	if err != nil {
 		logger.Error("Failed to open database", "error", err)
 		os.Exit(1)

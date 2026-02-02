@@ -97,10 +97,13 @@ Create a `.env` file (see `.env.example`):
 
 - `SESSION_KEY` - **Required.** Secret key for session encryption (min 32 chars)
 - `DEBUG` - Set to `true` for verbose logging
+- `DATABASE_URL` - SQLite database path (optional, defaults to `./db/db.sqlite`)
 
 ## Database Location
 
-SQLite database is stored at: `./db/db.sqlite`
+Default: `./db/db.sqlite`
+
+Can be changed via `DATABASE_URL` environment variable.
 
 ## Testing
 
