@@ -19,9 +19,6 @@ import (
 	"github.com/Polo123456789/entry-watch/internal/sqlc"
 )
 
-// DEBUG controls logging level and is set via environment variable
-var DEBUG = os.Getenv("DEBUG") == "true"
-
 func main() {
 	// Load .env file if it exists
 	_ = godotenv.Load()
@@ -31,8 +28,10 @@ func main() {
 		os.Interrupt, os.Kill,
 	)
 
+	debug := os.Getenv("DEBUG") == "true"
+
 	var logger *slog.Logger
-	if DEBUG {
+	if debug {
 		logger = slog.New(log.NewWithOptions(os.Stderr, log.Options{
 			Level:           log.DebugLevel,
 			ReportTimestamp: false,
