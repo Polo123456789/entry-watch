@@ -23,9 +23,10 @@ func NewUserStore(db *sql.DB) *UserStore {
 	}
 }
 
-// GetByEmail retrieves a user by email along with the password hash.
+// GetByEmailForAuth retrieves a user by email along with the password hash.
 // Implements auth.UserStore.
-func (s *UserStore) GetByEmail(ctx context.Context, email string) (auth.UserWithPassword, bool, error) {
+// WARNING: Returns password hash - only use for authentication!
+func (s *UserStore) GetByEmailForAuth(ctx context.Context, email string) (auth.UserWithPassword, bool, error) {
 	user, err := s.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

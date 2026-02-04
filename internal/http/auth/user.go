@@ -30,11 +30,10 @@ type UserWithPassword struct {
 // Implementations are responsible for converting between the SQLC model
 // and the auth model.
 type UserStore interface {
-	// GetByEmail retrieves a user by their email address with its password for
-	// authentication purposes.
-	// TODO: If this will only be used for authentication, make that clear in
-	// the method name.
-	GetByEmail(ctx context.Context, email string) (UserWithPassword, bool, error)
+	// GetByEmailForAuth retrieves a user by their email address with its password hash.
+	// WARNING: This method returns the password hash and should ONLY be used for
+	// authentication purposes. Never use this for general user retrieval.
+	GetByEmailForAuth(ctx context.Context, email string) (UserWithPassword, bool, error)
 
 	// GetByID retrieves a user by their ID.
 	// Returns (nil, false, nil) if the user is not found.

@@ -93,7 +93,7 @@ func attemptLogin(
 		http.StatusBadRequest,
 	)
 
-	userWithPass, ok, err := store.GetByEmail(ctx, email)
+	userWithPass, ok, err := store.GetByEmailForAuth(ctx, email)
 	if err != nil {
 		return nil, err
 	}
