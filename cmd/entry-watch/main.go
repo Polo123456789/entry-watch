@@ -29,8 +29,6 @@ func main() {
 	)
 
 	debug := os.Getenv("DEBUG") == "true"
-	databaseURL := os.Getenv("DATABASE_URL")
-
 	var logger *slog.Logger
 	if debug {
 		logger = slog.New(log.NewWithOptions(os.Stderr, log.Options{
@@ -40,19 +38,20 @@ func main() {
 			CallerOffset:    0,
 		}))
 	} else {
-		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
+		logger = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 	}
 
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		logger.Error("DATABASE_URL environment variable must be set")
+		os.Exit(1)
+	}
 	db, err := sql.Open("sqlite", databaseURL)
 	if err != nil {
 		logger.Error("Failed to open database", "error", err)
 		os.Exit(1)
 	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			logger.Error("Failed to close database", "error", err)
-		}
-	}()
+	defer db.Close() //nolint:errcheck
 
 	store := sqlc.NewStore(db)
 	app := entry.NewApp(logger, store)
@@ -78,7 +77,6 @@ func main() {
 		Secure:   true, // Always secure (required by Chrome)
 		SameSite: http.SameSiteLaxMode,
 	}
-
 	logger.Info("Session store configured",
 		"secure", true,
 		"same_site", "Lax",
