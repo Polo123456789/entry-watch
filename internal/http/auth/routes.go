@@ -5,15 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/sessions"
-
-	"github.com/Polo123456789/entry-watch/internal/entry"
 )
 
 // Handle sets up all authentication routes.
 // Unauthenticated routes: /auth/login, /auth/logout
 // The session store is passed in to be used by all auth handlers.
 func Handle(
-	app *entry.App,
 	logger *slog.Logger,
 	session sessions.Store,
 	userStore UserStore,
