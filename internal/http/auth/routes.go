@@ -20,12 +20,9 @@ func Handle(
 ) http.Handler {
 	mux := http.NewServeMux()
 
-	// Unauthenticated routes
 	mux.Handle(
 		"GET /auth/login",
-		RedirectIfAuthenticated(session, logger)(
-			hGetLogin(session, logger),
-		),
+		hGetLogin(session, logger),
 	)
 	mux.Handle(
 		"POST /auth/login",

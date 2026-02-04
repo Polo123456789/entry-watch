@@ -26,21 +26,6 @@ type UserWithPassword struct {
 	PasswordHash string
 }
 
-// UserSafeError represents an error that can be safely shown to users.
-// These errors are typically caused by user input and don't expose system details.
-type UserSafeError struct {
-	msg string
-}
-
-func (e *UserSafeError) Error() string {
-	return e.msg
-}
-
-// NewUserSafeError creates a new user-safe error with the given message.
-func NewUserSafeError(msg string) *UserSafeError {
-	return &UserSafeError{msg: msg}
-}
-
 // UserStore defines the interface for user storage operations.
 // Implementations are responsible for converting between the SQLC model
 // and the auth model.
@@ -67,6 +52,8 @@ type UserStore interface {
 // toEntryUser converts an auth.User to an entry.User.
 // This is used when passing user data to the domain layer.
 // Only copies the fields needed for domain-level authorization.
+//
+//nolint:unused // Will be used when protected routes are implemented
 func toEntryUser(u *User) *entry.User {
 	if u == nil {
 		return nil

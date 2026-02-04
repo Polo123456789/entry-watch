@@ -16,9 +16,8 @@ The authentication system has been fully implemented following the patterns from
 - `internal/sqlc/store.go` - Main Store implementation for entry.Store interface
 
 ### 2. Auth Package (`internal/http/auth/`)
-- `types.go` - User type, UserWithPassword, UserSafeError, UserStore interface, and helper functions
+- `user.go` - User type, UserWithPassword, UserStore interface, and helper functions
 - `handlers.go` - Login/logout handlers with bcrypt password verification
-- `middleware.go` - AuthMiddleware, RedirectIfAuthenticated, RequireRole helpers
 - `bootstrap.go` - EnsureSuperAdminExists for creating default superadmin
 - `routes.go` - Route setup for /auth/login and /auth/logout
 
