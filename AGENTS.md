@@ -65,6 +65,10 @@ Errores
 - Usa tipos de error concretos para distinguir casos (p. ej. `UnauthorizedError`, `ForbiddenError`) y `errors.Is` / `errors.As` para comprobarlos.
 - Evita exponer mensajes internos al cliente; registra el error completo y devuelve mensajes genéricos HTTP cuando corresponda.
 
+- Errores de usuario seguros
+- Para errores que se pueden mostrar al usuario utiliza el tipo `entry.UserSafeError` definido en `internal/entry/user-safe-error.go`. Estos errores representan condiciones causadas por la entrada o acciones del usuario y no deben incluir detalles internos del sistema.
+- Los mensajes contenidos en `UserSafeError` (y, en general, cualquier mensaje que se vaya a pasar al cliente) deben escribirse en español y estar redactados pensando en el usuario final. Registra siempre la información técnica completa en los logs y expón al cliente sólo el texto en español apropiado y no sensible.
+
 HTTP / handlers
 - Sigue el patrón local: handlers que devuelven `error` y son adaptados por `internal/http/util.Handler(logger, func(w,r) error)`.
 - Usa `context` para inyectar `entry.User` con `entry.WithUser(ctx, user)` y los helpers `entry.RequireRole(...)`.
