@@ -77,10 +77,6 @@ func main() {
 		Secure:   true, // Always secure (required by Chrome)
 		SameSite: http.SameSiteLaxMode,
 	}
-	logger.Info("Session store configured",
-		"secure", true,
-		"same_site", "Lax",
-	)
 
 	server := apphttp.NewServer(
 		"0.0.0.0",
