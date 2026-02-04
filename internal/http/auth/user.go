@@ -7,7 +7,6 @@ import (
 )
 
 // User represents an authenticated user in the auth system.
-// This mirrors the database schema from db/migrations/20251123181233_init.sql
 // This is separate from entry.User to maintain domain separation.
 type User struct {
 	ID            int64
@@ -46,10 +45,10 @@ func NewUserSafeError(msg string) *UserSafeError {
 // Implementations are responsible for converting between the SQLC model
 // and the auth model.
 type UserStore interface {
-	// GetByEmail retrieves a user by their email address.
-	// Returns the user with password hash for authentication.
-	// Returns (UserWithPassword{}, false, nil) if the user is not found.
-	// Returns (UserWithPassword{}, false, error) if there is a database error.
+	// GetByEmail retrieves a user by their email address with its password for
+	// authentication purposes.
+	// TODO: If this will only be used for authentication, make that clear in
+	// the method name.
 	GetByEmail(ctx context.Context, email string) (UserWithPassword, bool, error)
 
 	// GetByID retrieves a user by their ID.
