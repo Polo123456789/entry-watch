@@ -16,11 +16,6 @@ func NewApp(logger *slog.Logger, store Store) *App {
 	}
 }
 
-// Store returns the application's data store.
-func (a *App) Store() Store {
-	return a.store
-}
-
 type Store interface {
 	CondominiumStore
 	VisitStore
