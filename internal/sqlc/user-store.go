@@ -6,7 +6,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Polo123456789/entry-watch/internal/entry"
 	"github.com/Polo123456789/entry-watch/internal/http/auth"
 )
 
@@ -36,17 +35,7 @@ func (s *UserStore) GetByEmailForAuth(ctx context.Context, email string) (auth.U
 	}
 
 	return auth.UserWithPassword{
-		User: &auth.User{
-			ID:            user.ID,
-			CondominiumID: getInt64FromNullInt64(user.CondominiumID),
-			FirstName:     user.FirstName,
-			LastName:      user.LastName,
-			Email:         user.Email,
-			Phone:         getStringFromNullString(user.Phone),
-			Role:          entry.UserRole(user.Role),
-			Enabled:       user.Enabled,
-			Hidden:        user.Hidden,
-		},
+		User:         user.unmarshall(),
 		PasswordHash: user.Password,
 	}, true, nil
 }
@@ -62,17 +51,7 @@ func (s *UserStore) GetByID(ctx context.Context, id int64) (*auth.User, bool, er
 		return nil, false, err
 	}
 
-	return &auth.User{
-		ID:            user.ID,
-		CondominiumID: getInt64FromNullInt64(user.CondominiumID),
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		Email:         user.Email,
-		Phone:         getStringFromNullString(user.Phone),
-		Role:          entry.UserRole(user.Role),
-		Enabled:       user.Enabled,
-		Hidden:        user.Hidden,
-	}, true, nil
+	return user.unmarshall(), true, nil
 }
 
 // CreateUser creates a new user with the given password hash.
@@ -104,24 +83,16 @@ func (s *UserStore) CreateUser(ctx context.Context, user *auth.User, passwordHas
 		Hidden:        user.Hidden,
 		CreatedAt:     now,
 		UpdatedAt:     now,
-		CreatedBy:     sql.NullInt64{},
-		UpdatedBy:     sql.NullInt64{},
+		// TODO: When implementing the user managment UI, set these fields to
+		// the ID of the admin performing the action.
+		CreatedBy: sql.NullInt64{},
+		UpdatedBy: sql.NullInt64{},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &auth.User{
-		ID:            createdUser.ID,
-		CondominiumID: getInt64FromNullInt64(createdUser.CondominiumID),
-		FirstName:     createdUser.FirstName,
-		LastName:      createdUser.LastName,
-		Email:         createdUser.Email,
-		Phone:         getStringFromNullString(createdUser.Phone),
-		Role:          entry.UserRole(createdUser.Role),
-		Enabled:       createdUser.Enabled,
-		Hidden:        createdUser.Hidden,
-	}, nil
+	return createdUser.unmarshall(), nil
 }
 
 // CountSuperAdmins returns the number of enabled superadmins.
