@@ -1,0 +1,184 @@
+package auth
+
+import (
+	"context"
+	"log/slog"
+	"net/http"
+
+	"github.com/gorilla/sessions"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/util"
+	templates "github.com/Polo123456789/entry-watch/internal/templates/auth"
+)
+
+const authSessionKey = "entry-watch-auth"
+
+func hGetLogin(
+	session sessions.Store,
+	logger *slog.Logger,
+) http.Handler {
+	return util.Handler(logger, func(
+		w http.ResponseWriter, r *http.Request,
+	) error {
+		user, ok := CurrentUser(session, r)
+		if ok {
+			redirectURL := getRedirectForRole(user.Role)
+			http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+			return nil
+		}
+
+		errorParam := r.URL.Query().Get("error")
+		hasError := errorParam == "1"
+
+		return templates.Login(hasError).Render(r.Context(), w)
+	})
+}
+
+func hPostLogin(
+	session sessions.Store,
+	store UserStore,
+	logger *slog.Logger,
+) http.Handler {
+	return util.Handler(logger, func(
+		w http.ResponseWriter, r *http.Request,
+	) error {
+		if err := r.ParseForm(); err != nil {
+			return err
+		}
+
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+
+		user, err := attemptLogin(r.Context(), store, email, password)
+		if err != nil {
+			return err
+		}
+
+		if err := setCurrentUser(w, r, session, user); err != nil {
+			return err
+		}
+
+		redirectURL := getRedirectForRole(user.Role)
+		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+		return nil
+	})
+}
+
+func hGetLogout(
+	session sessions.Store,
+	logger *slog.Logger,
+) http.Handler {
+	return util.Handler(logger, func(
+		w http.ResponseWriter, r *http.Request,
+	) error {
+		s, _ := session.Get(r, authSessionKey)
+		s.Options.MaxAge = -1
+		_ = s.Save(r, w)
+		http.Redirect(w, r, "/auth/login", http.StatusFound)
+		return nil
+	})
+}
+
+func attemptLogin(
+	ctx context.Context,
+	store UserStore,
+	email string,
+	password string,
+) (*User, error) {
+	// Use generic error to prevent user enumeration
+	wrongCredsErr := util.NewErrorWithCode(
+		"Correo electrónico o contraseña incorrectos",
+		http.StatusBadRequest,
+	)
+
+	userWithPass, ok, err := store.GetByEmailForAuth(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return nil, wrongCredsErr
+	}
+
+	if !userWithPass.Enabled {
+		return nil, util.NewErrorWithCode(
+			"La cuenta está deshabilitada",
+			http.StatusBadRequest,
+		)
+	}
+
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(userWithPass.PasswordHash),
+		[]byte(password),
+	)
+	if err != nil {
+		return nil, wrongCredsErr
+	}
+
+	return userWithPass.User, nil
+}
+
+func setCurrentUser(
+	w http.ResponseWriter,
+	r *http.Request,
+	session sessions.Store,
+	user *User,
+) error {
+	s, err := session.Get(r, authSessionKey)
+	if err != nil {
+		return err
+	}
+
+	s.Values["user_id"] = user.ID
+	s.Values["role"] = string(user.Role)
+	s.Values["condominium_id"] = user.CondominiumID
+	s.Values["enabled"] = user.Enabled
+
+	return s.Save(r, w)
+}
+
+// CurrentUser retrieves the user from the session.
+// Returns an auth.User which can be converted to entry.User with toEntryUser().
+func CurrentUser(
+	session sessions.Store,
+	r *http.Request,
+) (*User, bool) {
+	s, _ := session.Get(r, authSessionKey)
+
+	userID, ok := s.Values["user_id"].(int64)
+	if !ok {
+		return nil, false
+	}
+
+	roleStr, ok := s.Values["role"].(string)
+	if !ok {
+		return nil, false
+	}
+
+	condoID, _ := s.Values["condominium_id"].(int64)
+	enabled, _ := s.Values["enabled"].(bool)
+
+	return &User{
+		ID:            userID,
+		Role:          entry.UserRole(roleStr),
+		CondominiumID: condoID,
+		Enabled:       enabled,
+	}, true
+}
+
+func getRedirectForRole(role entry.UserRole) string {
+	switch role {
+	case entry.RoleSuperAdmin:
+		return "/super/"
+	case entry.RoleAdmin:
+		return "/admin/"
+	case entry.RoleGuardian:
+		return "/guard/"
+	case entry.RoleUser:
+		return "/neighbor/"
+	default:
+		return "/auth/login"
+	}
+}

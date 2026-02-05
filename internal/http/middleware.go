@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/sessions"
+
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 )
 
 type wrappedWritter struct {
@@ -19,21 +22,24 @@ func (w *wrappedWritter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-func CanonicalLoggerMiddleware(logger *slog.Logger, next http.Handler) http.Handler {
+func CanonicalLoggerMiddleware(
+	logger *slog.Logger,
+	session sessions.Store,
+	next http.Handler,
+) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
+		authUser, userOk := auth.CurrentUser(session, r)
+		if userOk {
+			user := authUser.ToEntryUser()
+			ctx := entry.WithUser(r.Context(), user)
+			r = r.WithContext(ctx)
+		}
+
 		ww := &wrappedWritter{w, http.StatusOK}
 
-		// TODO: Use actual auth instead of the mock one
-		ctx := entry.WithUser(r.Context(), &entry.User{
-			ID:            1,
-			CondominiumID: 1,
-			Role:          entry.RoleSuperAdmin,
-			Enabled:       true,
-		})
-
-		next.ServeHTTP(ww, r.WithContext(ctx))
+		next.ServeHTTP(ww, r)
 
 		attrs := []slog.Attr{
 			slog.String("url", r.URL.String()),
@@ -42,23 +48,16 @@ func CanonicalLoggerMiddleware(logger *slog.Logger, next http.Handler) http.Hand
 			slog.Duration("duration", time.Since(start)),
 		}
 
-		//
-
-		/*
-			You might want to add more stuff in here, like ips, the user that
-			made the request, or the request ID if you have one.
-
-			if u, ok := CurrentUser(r); ok {
-				attrs = append(attrs, slog.Int64("user_id", u.ID))
-				// Maybe add it to the context here?
-			}
-
-			if ip := r.Header.Get("X-Real-IP"); ip != "" {
-				attrs = append(attrs, slog.String("ip", ip))
-			} else {
-				attrs = append(attrs, slog.String("ip", r.RemoteAddr))
-			}
-		*/
+		if userOk {
+			attrs = append(
+				attrs,
+				slog.Int64("user_id", authUser.ID),
+				slog.String("user_role", string(authUser.Role)),
+				slog.Int64("user_condo", authUser.CondominiumID),
+			)
+		} else {
+			attrs = append(attrs, slog.String("user_id", "anonymous"))
+		}
 
 		logger.LogAttrs(
 			r.Context(),

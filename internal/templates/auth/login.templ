@@ -1,0 +1,51 @@
+package templates
+
+import "github.com/Polo123456789/entry-watch/internal/templates/common"
+
+templ Login(hasError bool) {
+	@common.Layout("Iniciar sesión", EmptyHeadTags(), EmptyNavbar()) {
+		<section class="container">
+			<hgroup>
+				<h1>Iniciar sesión</h1>
+				<p>Ingresa tus credenciales para acceder al sistema</p>
+			</hgroup>
+			<form method="post" action="/auth/login">
+				if hasError {
+					<article class="pico-background-red-500">
+						Correo electrónico o contraseña incorrectos
+					</article>
+				}
+				<fieldset>
+					<label for="email">Correo electrónico</label>
+					<input
+						type="email"
+						id="email"
+						name="email"
+						placeholder="tu@email.com"
+						required
+						autofocus
+					/>
+				</fieldset>
+				<fieldset>
+					<label for="password">Contraseña</label>
+					<input
+						type="password"
+						id="password"
+						name="password"
+						placeholder="Tu contraseña"
+						required
+					/>
+				</fieldset>
+				<button type="submit">Iniciar sesión</button>
+			</form>
+		</section>
+	}
+}
+
+templ EmptyHeadTags() {
+	<!-- No additional head tags needed -->
+}
+
+templ EmptyNavbar() {
+	<!-- No navbar for login page -->
+}

@@ -10,6 +10,8 @@ import (
 
 	"github.com/Polo123456789/assert"
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
+	"github.com/gorilla/sessions"
 )
 
 func NewServer(
@@ -17,6 +19,8 @@ func NewServer(
 	port int,
 	app *entry.App,
 	logger *slog.Logger,
+	session sessions.Store,
+	userStore auth.UserStore,
 ) *http.Server {
 	assert.NotEquals(address, "")
 	assert.MoreThan(port, 0)
@@ -28,11 +32,13 @@ func NewServer(
 		mux,
 		app,
 		logger,
+		session,
+		userStore,
 	)
 
 	// Global middlewares
 	var handler http.Handler = mux
-	handler = CanonicalLoggerMiddleware(logger, handler)
+	handler = CanonicalLoggerMiddleware(logger, session, handler)
 	handler = RecoverMiddleware(logger, handler)
 
 	server := &http.Server{

@@ -2,3 +2,5 @@
 tmp/
 *_templ.go
 *.sql.go
+.env
+./entry-watch

@@ -4,8 +4,11 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/gorilla/sessions"
+
 	"github.com/Polo123456789/entry-watch/internal/entry"
 	"github.com/Polo123456789/entry-watch/internal/http/admin"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 	"github.com/Polo123456789/entry-watch/internal/http/guard"
 	"github.com/Polo123456789/entry-watch/internal/http/superadmin"
 	"github.com/Polo123456789/entry-watch/internal/http/user"
@@ -16,9 +19,10 @@ func setupRoutes(
 	mux *http.ServeMux,
 	app *entry.App,
 	logger *slog.Logger,
+	session sessions.Store,
+	userStore auth.UserStore,
 ) {
-	// TODO: mux.Handle("/", public.Handle(app, logger)) Is this needed?
-	// TODO: mux.Handle("/auth/", auth.Handle(app, logger))
+	mux.Handle("/auth/", auth.Handle(logger, session, userStore))
 	mux.Handle("/super/", superadmin.Handle(app, logger))
 	mux.Handle("/admin/", admin.Handle(app, logger))
 	mux.Handle("/guard/", guard.Handle(app, logger))
