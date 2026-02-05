@@ -28,10 +28,6 @@ func hGet(
 	})
 }
 
-// hPost handles the POST request for creating a new visit.
-// Currently unused - will be wired up when visit creation is implemented.
-//
-//nolint:unused
 func hPost(
 	app *entry.App,
 	logger *slog.Logger,
@@ -43,25 +39,26 @@ func hPost(
 			return err
 		}
 
-		_ = r.FormValue("visitor_name")
+		visitor := r.FormValue("visitor_name")
 		limitUses := r.FormValue("limit_uses") == "on"
-		_ = 0
+		maxUses := 0
 
 		if limitUses {
-			_, err := strconv.Atoi(r.FormValue("max_uses"))
+			var err error
+			maxUses, err = strconv.Atoi(r.FormValue("max_uses"))
 			if err != nil {
 				return err
 			}
 		}
 
-		_, err := time.Parse(
+		validFrom, err := time.Parse(
 			time.DateOnly, r.FormValue("valid_from"),
 		)
 		if err != nil {
 			return err
 		}
 
-		_, err = time.Parse(
+		validTo, err := time.Parse(
 			time.DateOnly, r.FormValue("valid_to"),
 		)
 		if err != nil {
@@ -71,7 +68,6 @@ func hPost(
 		// visit, err := app.CreateVisit( ... )
 		// http.Redirect( ... )
 		// TODO: Come back to this
-		_ = app // Use app to avoid unused parameter warning
 		return nil
 	})
 }
