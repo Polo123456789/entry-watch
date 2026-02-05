@@ -50,12 +50,7 @@ type UserStore interface {
 	CountSuperAdmins(ctx context.Context) (int64, error)
 }
 
-// toEntryUser converts an auth.User to an entry.User.
-// This is used when passing user data to the domain layer.
-// Only copies the fields needed for domain-level authorization.
-//
-//nolint:unused // Will be used when protected routes are implemented
-func toEntryUser(u *User) *entry.User {
+func (u *User) ToEntryUser() *entry.User {
 	if u == nil {
 		return nil
 	}

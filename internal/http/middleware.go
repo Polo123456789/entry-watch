@@ -5,6 +5,11 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/sessions"
+
+	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 )
 
 type wrappedWritter struct {
@@ -17,9 +22,20 @@ func (w *wrappedWritter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
-func CanonicalLoggerMiddleware(logger *slog.Logger, next http.Handler) http.Handler {
+func CanonicalLoggerMiddleware(
+	logger *slog.Logger,
+	session sessions.Store,
+	next http.Handler,
+) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+
+		authUser, ok := auth.CurrentUser(session, r)
+		if ok {
+			user := authUser.ToEntryUser()
+			ctx := entry.WithUser(r.Context(), user)
+			r = r.WithContext(ctx)
+		}
 
 		ww := &wrappedWritter{w, http.StatusOK}
 
@@ -30,9 +46,8 @@ func CanonicalLoggerMiddleware(logger *slog.Logger, next http.Handler) http.Hand
 			slog.String("method", r.Method),
 			slog.Int("status_code", ww.statusCode),
 			slog.Duration("duration", time.Since(start)),
+			slog.Int64("user_id", authUser.ID),
 		}
-
-		//
 
 		/*
 			You might want to add more stuff in here, like ips, the user that
