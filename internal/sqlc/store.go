@@ -3,7 +3,6 @@ package sqlc
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
 )
@@ -24,13 +23,13 @@ func NewStore(db *sql.DB) *Store {
 
 // VisitGetByID retrieves a visit by its ID.
 func (s *Store) VisitGetByID(ctx context.Context, id string) (*entry.Visit, error) {
-	// TODO: Implement when visits SQLC queries are created
+	panic("Not implemented")
 	return nil, nil
 }
 
 // VisitCreate creates a new visit.
 func (s *Store) VisitCreate(ctx context.Context, visit *entry.Visit) (*entry.Visit, error) {
-	// TODO: Implement when visits SQLC queries are created
+	panic("Not implemented")
 	return visit, nil
 }
 
@@ -40,19 +39,19 @@ func (s *Store) VisitUpdate(
 	id string,
 	updateFn func(visit *entry.Visit) (*entry.Visit, error),
 ) error {
-	// TODO: Implement when visits SQLC queries are created
+	panic("Not implemented")
 	return nil
 }
 
 // CondoGetByID retrieves a condominium by its ID.
 func (s *Store) CondoGetByID(ctx context.Context, id int64) (*entry.Condominium, error) {
-	// TODO: Implement when condominiums SQLC queries are created
+	panic("Not implemented")
 	return nil, nil
 }
 
 // CondoCreate creates a new condominium.
 func (s *Store) CondoCreate(ctx context.Context, condo *entry.Condominium) (*entry.Condominium, error) {
-	// TODO: Implement when condominiums SQLC queries are created
+	panic("Not implemented")
 	return condo, nil
 }
 
@@ -62,16 +61,6 @@ func (s *Store) CondoUpdate(
 	id int64,
 	updateFn func(condo *entry.Condominium) (*entry.Condominium, error),
 ) error {
-	// TODO: Implement when condominiums SQLC queries are created
+	panic("Not implemented")
 	return nil
-}
-
-// ConvertTime converts time.Time to Unix timestamp (int64).
-func ConvertTime(t time.Time) int64 {
-	return t.Unix()
-}
-
-// ConvertUnixTime converts Unix timestamp (int64) to time.Time.
-func ConvertUnixTime(unix int64) time.Time {
-	return time.Unix(unix, 0)
 }
