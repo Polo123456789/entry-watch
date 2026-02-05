@@ -58,7 +58,7 @@ func main() {
 
 	userStore := sqlc.NewUserStore(db)
 
-	if err := auth.EnsureSuperAdminExists(userStore, logger); err != nil {
+	if err := auth.EnsureSuperAdminExists(ctx, userStore, logger); err != nil {
 		logger.Error("Failed to ensure superadmin exists", "error", err)
 		os.Exit(1)
 	}

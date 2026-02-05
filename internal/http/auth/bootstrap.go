@@ -14,9 +14,7 @@ import (
 // - Email: admin@localhost
 // - Password: changeme
 // This is called at application startup.
-func EnsureSuperAdminExists(store UserStore, logger *slog.Logger) error {
-	ctx := context.Background()
-
+func EnsureSuperAdminExists(ctx context.Context, store UserStore, logger *slog.Logger) error {
 	count, err := store.CountSuperAdmins(ctx)
 	if err != nil {
 		return err
