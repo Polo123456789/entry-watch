@@ -78,7 +78,8 @@ func (s *UserStore) GetByID(ctx context.Context, id int64) (*auth.User, bool, er
 // CreateUser creates a new user with the given password hash.
 // Implements auth.UserStore.
 // Returns the created user with the assigned ID from the database.
-func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName string, user *auth.User, passwordHash string) (*auth.User, error) {
+// All user fields must be properly set in the user struct before calling.
+func (s *UserStore) CreateUser(ctx context.Context, user *auth.User, passwordHash string) (*auth.User, error) {
 	now := time.Now().Unix()
 
 	var condoID sql.NullInt64
@@ -86,16 +87,21 @@ func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName s
 		condoID = sql.NullInt64{Int64: user.CondominiumID, Valid: true}
 	}
 
+	var phone sql.NullString
+	if user.Phone != "" {
+		phone = sql.NullString{String: user.Phone, Valid: true}
+	}
+
 	createdUser, err := s.queries.CreateUser(ctx, CreateUserParams{
 		CondominiumID: condoID,
-		FirstName:     firstName,
-		LastName:      lastName,
-		Email:         email,
-		Phone:         sql.NullString{},
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		Email:         user.Email,
+		Phone:         phone,
 		Role:          string(user.Role),
 		Password:      passwordHash,
 		Enabled:       user.Enabled,
-		Hidden:        false,
+		Hidden:        user.Hidden,
 		CreatedAt:     now,
 		UpdatedAt:     now,
 		CreatedBy:     sql.NullInt64{},

@@ -41,19 +41,16 @@ func EnsureSuperAdminExists(store UserStore, logger *slog.Logger) error {
 	}
 
 	user := &User{
+		FirstName:     "Super",
+		LastName:      "Admin",
+		Email:         "admin@localhost",
 		Role:          entry.RoleSuperAdmin,
 		Enabled:       true,
 		CondominiumID: 0,
+		Hidden:        false,
 	}
 
-	createdUser, err := store.CreateUser(
-		ctx,
-		"admin@localhost",
-		"Super",
-		"Admin",
-		user,
-		string(passwordHash),
-	)
+	createdUser, err := store.CreateUser(ctx, user, string(passwordHash))
 	if err != nil {
 		return err
 	}

@@ -42,8 +42,9 @@ type UserStore interface {
 
 	// CreateUser creates a new user with the given password hash.
 	// The password must already be hashed before calling this method.
-	// Returns the created user with the assigned ID.
-	CreateUser(ctx context.Context, email, firstName, lastName string, user *User, passwordHash string) (*User, error)
+	// Returns the created user with the assigned ID from the database.
+	// All user fields (FirstName, LastName, Email, Phone, Role, etc.) must be set in the user struct.
+	CreateUser(ctx context.Context, user *User, passwordHash string) (*User, error)
 
 	// CountSuperAdmins returns the number of enabled superadmins.
 	CountSuperAdmins(ctx context.Context) (int64, error)
