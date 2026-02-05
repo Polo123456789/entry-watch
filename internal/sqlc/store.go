@@ -22,11 +22,6 @@ func NewStore(db *sql.DB) *Store {
 	}
 }
 
-// DB returns the underlying database connection.
-func (s *Store) DB() *sql.DB {
-	return s.db
-}
-
 // VisitGetByID retrieves a visit by its ID.
 func (s *Store) VisitGetByID(ctx context.Context, id string) (*entry.Visit, error) {
 	// TODO: Implement when visits SQLC queries are created
