@@ -3,4 +3,4 @@ tmp/
 *_templ.go
 *.sql.go
 .env
-db/db.sqlite
+entry-watch
