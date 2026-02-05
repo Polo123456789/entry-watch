@@ -100,19 +100,3 @@ func (s *UserStore) CreateUser(ctx context.Context, user *auth.User, passwordHas
 func (s *UserStore) CountSuperAdmins(ctx context.Context) (int64, error) {
 	return s.queries.CountSuperAdmins(ctx)
 }
-
-// getInt64FromNullInt64 safely extracts int64 from sql.NullInt64.
-func getInt64FromNullInt64(n sql.NullInt64) int64 {
-	if n.Valid {
-		return n.Int64
-	}
-	return 0
-}
-
-// getStringFromNullString safely extracts string from sql.NullString.
-func getStringFromNullString(n sql.NullString) string {
-	if n.Valid {
-		return n.String
-	}
-	return ""
-}
