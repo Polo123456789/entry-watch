@@ -68,6 +68,12 @@ func hPost(
 		// visit, err := app.CreateVisit( ... )
 		// http.Redirect( ... )
 		// TODO: Come back to this
+
+		_ = visitor
+		_ = maxUses
+		_ = validFrom
+		_ = validTo
+
 		return nil
 	})
 }

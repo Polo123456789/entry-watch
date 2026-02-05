@@ -136,11 +136,6 @@ func setCurrentUser(
 	s.Values["condominium_id"] = user.CondominiumID
 	s.Values["enabled"] = user.Enabled
 
-	s.Options.MaxAge = 60 * 60 * 12
-	s.Options.HttpOnly = true
-	s.Options.Secure = false
-	s.Options.SameSite = http.SameSiteLaxMode
-
 	return s.Save(r, w)
 }
 

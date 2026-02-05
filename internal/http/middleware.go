@@ -30,8 +30,8 @@ func CanonicalLoggerMiddleware(
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		authUser, ok := auth.CurrentUser(session, r)
-		if ok {
+		authUser, userOk := auth.CurrentUser(session, r)
+		if userOk {
 			user := authUser.ToEntryUser()
 			ctx := entry.WithUser(r.Context(), user)
 			r = r.WithContext(ctx)
@@ -46,24 +46,18 @@ func CanonicalLoggerMiddleware(
 			slog.String("method", r.Method),
 			slog.Int("status_code", ww.statusCode),
 			slog.Duration("duration", time.Since(start)),
-			slog.Int64("user_id", authUser.ID),
 		}
 
-		/*
-			You might want to add more stuff in here, like ips, the user that
-			made the request, or the request ID if you have one.
-
-			if u, ok := CurrentUser(r); ok {
-				attrs = append(attrs, slog.Int64("user_id", u.ID))
-				// Maybe add it to the context here?
-			}
-
-			if ip := r.Header.Get("X-Real-IP"); ip != "" {
-				attrs = append(attrs, slog.String("ip", ip))
-			} else {
-				attrs = append(attrs, slog.String("ip", r.RemoteAddr))
-			}
-		*/
+		if userOk {
+			attrs = append(
+				attrs,
+				slog.Int64("user_id", authUser.ID),
+				slog.String("user_role", string(authUser.Role)),
+				slog.Int64("user_condo", authUser.CondominiumID),
+			)
+		} else {
+			attrs = append(attrs, slog.String("user_id", "anonymous"))
+		}
 
 		logger.LogAttrs(
 			r.Context(),
