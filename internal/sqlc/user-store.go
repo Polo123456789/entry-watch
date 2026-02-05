@@ -77,7 +77,8 @@ func (s *UserStore) GetByID(ctx context.Context, id int64) (*auth.User, bool, er
 
 // CreateUser creates a new user with the given password hash.
 // Implements auth.UserStore.
-func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName string, user *auth.User, passwordHash string) error {
+// Returns the created user with the assigned ID from the database.
+func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName string, user *auth.User, passwordHash string) (*auth.User, error) {
 	now := time.Now().Unix()
 
 	var condoID sql.NullInt64
@@ -85,7 +86,7 @@ func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName s
 		condoID = sql.NullInt64{Int64: user.CondominiumID, Valid: true}
 	}
 
-	return s.queries.CreateUser(ctx, CreateUserParams{
+	createdUser, err := s.queries.CreateUser(ctx, CreateUserParams{
 		CondominiumID: condoID,
 		FirstName:     firstName,
 		LastName:      lastName,
@@ -100,6 +101,21 @@ func (s *UserStore) CreateUser(ctx context.Context, email, firstName, lastName s
 		CreatedBy:     sql.NullInt64{},
 		UpdatedBy:     sql.NullInt64{},
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth.User{
+		ID:            createdUser.ID,
+		CondominiumID: getInt64FromNullInt64(createdUser.CondominiumID),
+		FirstName:     createdUser.FirstName,
+		LastName:      createdUser.LastName,
+		Email:         createdUser.Email,
+		Phone:         getStringFromNullString(createdUser.Phone),
+		Role:          entry.UserRole(createdUser.Role),
+		Enabled:       createdUser.Enabled,
+		Hidden:        createdUser.Hidden,
+	}, nil
 }
 
 // CountSuperAdmins returns the number of enabled superadmins.

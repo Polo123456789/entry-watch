@@ -24,13 +24,11 @@ func NewStore(db *sql.DB) *Store {
 // VisitGetByID retrieves a visit by its ID.
 func (s *Store) VisitGetByID(ctx context.Context, id string) (*entry.Visit, error) {
 	panic("Not implemented")
-	return nil, nil
 }
 
 // VisitCreate creates a new visit.
 func (s *Store) VisitCreate(ctx context.Context, visit *entry.Visit) (*entry.Visit, error) {
 	panic("Not implemented")
-	return visit, nil
 }
 
 // VisitUpdate updates an existing visit.
@@ -40,19 +38,16 @@ func (s *Store) VisitUpdate(
 	updateFn func(visit *entry.Visit) (*entry.Visit, error),
 ) error {
 	panic("Not implemented")
-	return nil
 }
 
 // CondoGetByID retrieves a condominium by its ID.
 func (s *Store) CondoGetByID(ctx context.Context, id int64) (*entry.Condominium, error) {
 	panic("Not implemented")
-	return nil, nil
 }
 
 // CondoCreate creates a new condominium.
 func (s *Store) CondoCreate(ctx context.Context, condo *entry.Condominium) (*entry.Condominium, error) {
 	panic("Not implemented")
-	return condo, nil
 }
 
 // CondoUpdate updates an existing condominium.
@@ -62,5 +57,4 @@ func (s *Store) CondoUpdate(
 	updateFn func(condo *entry.Condominium) (*entry.Condominium, error),
 ) error {
 	panic("Not implemented")
-	return nil
 }

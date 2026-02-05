@@ -46,7 +46,7 @@ func EnsureSuperAdminExists(store UserStore, logger *slog.Logger) error {
 		CondominiumID: 0,
 	}
 
-	err = store.CreateUser(
+	createdUser, err := store.CreateUser(
 		ctx,
 		"admin@localhost",
 		"Super",
@@ -60,6 +60,7 @@ func EnsureSuperAdminExists(store UserStore, logger *slog.Logger) error {
 
 	logger.Warn("Default superadmin created successfully",
 		"email", "admin@localhost",
+		"id", createdUser.ID,
 	)
 
 	return nil

@@ -8,7 +8,7 @@ SELECT *
 FROM users
 WHERE id = ?;
 
--- name: CreateUser :exec
+-- name: CreateUser :one
 INSERT INTO users (
     condominium_id,
 	first_name,
@@ -25,7 +25,8 @@ INSERT INTO users (
 	updated_by
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-);
+)
+RETURNING id, condominium_id, first_name, last_name, email, phone, role, password, enabled, hidden, created_at, updated_at, created_by, updated_by;
 
 -- name: CountSuperAdmins :one
 SELECT COUNT(*) AS count

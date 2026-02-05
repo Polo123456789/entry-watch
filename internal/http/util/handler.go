@@ -26,9 +26,9 @@ func HandleError(
 ) {
 	if e, ok := errorAs[*ErrorWithCode](err); ok {
 		http.Error(w, e.msg, e.code)
-	} else if e, ok := errorAs[entry.ForbiddenError](err); ok {
+	} else if e, ok := errorAs[*entry.ForbiddenError](err); ok {
 		http.Error(w, e.Error(), http.StatusForbidden)
-	} else if e, ok := errorAs[entry.UnauthorizedError](err); ok {
+	} else if e, ok := errorAs[*entry.UnauthorizedError](err); ok {
 		http.Error(w, e.Error(), http.StatusUnauthorized)
 	} else if e, ok := errorAs[entry.UserSafeError](err); ok {
 		http.Error(w, e.Error(), http.StatusBadRequest)
