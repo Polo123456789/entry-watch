@@ -26,7 +26,7 @@ INSERT INTO users (
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
-RETURNING id, condominium_id, first_name, last_name, email, phone, role, password, enabled, hidden, created_at, updated_at, created_by, updated_by;
+RETURNING *;
 
 -- name: CountSuperAdmins :one
 SELECT COUNT(*) AS count
