@@ -9,7 +9,7 @@ templ Login(hasError bool) {
 				<h1>Iniciar sesión</h1>
 				<p>Ingresa tus credenciales para acceder al sistema</p>
 			</hgroup>
-			<form method="post" action="/auth/login">
+			<form method="post" action="/auth/login" hx-boost="true">
 				if hasError {
 					<article class="pico-background-red-500">
 						Correo electrónico o contraseña incorrectos

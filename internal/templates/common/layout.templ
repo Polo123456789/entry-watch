@@ -22,6 +22,7 @@ templ Layout(title string, headTags templ.Component, navbar templ.Component) {
 			<main>
 				{ children... }
 			</main>
+			<div id="error-modal"></div>
 			<footer>
 				<p>
 					&copy; { time.Now().Year() } Pablo Sanchez. Todos los derechos reservados.
