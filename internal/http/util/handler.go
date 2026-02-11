@@ -27,6 +27,9 @@ func HandleError(
 ) {
 	if e, ok := errorAs[*ErrorWithCode](err); ok {
 		errorModal(w, r, e.Error(), e.code)
+	} else if e, ok := errorAs[*ErrorCodeOnly](err); ok {
+		// Handler already rendered the error message, just set the status code
+		w.WriteHeader(e.code)
 	} else if e, ok := errorAs[*entry.ForbiddenError](err); ok {
 		errorModal(w, r, e.Error(), http.StatusForbidden)
 	} else if e, ok := errorAs[*entry.UnauthorizedError](err); ok {
@@ -45,11 +48,14 @@ func HandleError(
 	}
 }
 
+// ErrorWithCode represents an error with a message and HTTP status code.
+// The message will be displayed in an error modal.
 type ErrorWithCode struct {
 	msg  string
 	code int
 }
 
+// NewErrorWithCode creates an error with a message that will be shown in the error modal.
 func NewErrorWithCode(msg string, code int) *ErrorWithCode {
 	return &ErrorWithCode{
 		msg:  msg,
@@ -59,6 +65,24 @@ func NewErrorWithCode(msg string, code int) *ErrorWithCode {
 
 func (e *ErrorWithCode) Error() string {
 	return e.msg
+}
+
+// ErrorCodeOnly represents an error with only an HTTP status code.
+// Use this when the handler has already rendered the error message in another way.
+type ErrorCodeOnly struct {
+	code int
+}
+
+// NewErrorCodeOnly creates an error with only a status code.
+// The handler is responsible for rendering the error message.
+func NewErrorCodeOnly(code int) *ErrorCodeOnly {
+	return &ErrorCodeOnly{
+		code: code,
+	}
+}
+
+func (e *ErrorCodeOnly) Error() string {
+	return http.StatusText(e.code)
 }
 
 func errorAs[T any](err error) (T, bool) {
