@@ -27,15 +27,10 @@ func HandleError(
 ) {
 	if e, ok := errorAs[*ErrorWithCode](err); ok {
 		errorModal(w, r, e.Error(), e.code)
-	} else if _, ok := errorAs[*ErrorCodeOnly](err); ok {
-		// Handler already rendered the error message in another way, so just
-		// set the status code
-		w.WriteHeader(e.code)
-		return
 	} else if e, ok := errorAs[*entry.ForbiddenError](err); ok {
 		errorModal(w, r, e.Error(), http.StatusForbidden)
-	} else if e, ok := errorAs[*entry.UnauthorizedError](err); ok {
-		errorModal(w, r, e.Error(), http.StatusUnauthorized)
+	} else if _, ok := errorAs[*entry.UnauthorizedError](err); ok {
+		http.Redirect(w, r, "/auth/login", http.StatusFound)
 	} else if e, ok := errorAs[entry.UserSafeError](err); ok {
 		errorModal(w, r, e.Error(), http.StatusBadRequest)
 	} else {
@@ -67,24 +62,6 @@ func NewErrorWithCode(msg string, code int) *ErrorWithCode {
 
 func (e *ErrorWithCode) Error() string {
 	return e.msg
-}
-
-// ErrorCodeOnly represents an error with only an HTTP status code.
-// Use this when the handler has already rendered the error message in another way.
-type ErrorCodeOnly struct {
-	code int
-}
-
-// NewErrorCodeOnly creates an error with only a status code.
-// The handler is responsible for rendering the error message.
-func NewErrorCodeOnly(code int) *ErrorCodeOnly {
-	return &ErrorCodeOnly{
-		code: code,
-	}
-}
-
-func (e *ErrorCodeOnly) Error() string {
-	return http.StatusText(e.code)
 }
 
 func errorAs[T any](err error) (T, bool) {

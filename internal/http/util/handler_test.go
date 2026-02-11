@@ -10,6 +10,7 @@ import (
 	"log/slog"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/templates/common"
 )
 
 func TestHandleErrorResponses(t *testing.T) {
@@ -47,12 +48,13 @@ func TestHandleErrorResponses(t *testing.T) {
 			name: "Unauthorized",
 			builder: func(r *http.Request, logger *slog.Logger) (*http.Request, http.Handler) {
 				// no user in context -> RequireRole returns UnauthorizedError
+				// Redirect to the login page
 				return r, Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
 					_, err := entry.RequireRole(r.Context(), entry.RoleUser)
 					return err
 				})
 			},
-			wantCode: http.StatusUnauthorized,
+			wantCode: http.StatusFound,
 		},
 		{
 			name: "UserSafeError",
@@ -71,17 +73,6 @@ func TestHandleErrorResponses(t *testing.T) {
 				})
 			},
 			wantCode: http.StatusInternalServerError,
-		},
-		{
-			name: "ErrorCodeOnly",
-			builder: func(r *http.Request, logger *slog.Logger) (*http.Request, http.Handler) {
-				return r, Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-					// Handler is responsible for rendering the error page
-					_, _ = w.Write([]byte("custom error page"))
-					return NewErrorCodeOnly(http.StatusBadRequest)
-				})
-			},
-			wantCode: http.StatusBadRequest,
 		},
 	}
 
