@@ -11,6 +11,8 @@ const (
 	RoleGuardian   UserRole = "guard"
 )
 
+// User represents a user in the domain layer.
+// Contains only the information needed for domain-level authorization.
 type User struct {
 	ID            int64
 	CondominiumID int64

@@ -1,0 +1,56 @@
+package common
+
+templ ErrorModal(message string) {
+	<dialog>
+		<article>
+			<header>Error</header>
+			<p>{ message }</p>
+			<footer>
+				<button>Cerrar</button>
+			</footer>
+		</article>
+		<script>
+			(() => {
+				const dialog = document.currentScript.closest('dialog');
+				const dialogContent = dialog.querySelector('article');
+				const duration = 400;
+
+				document.body.classList.add('modal-is-open','modal-is-opening');
+				setTimeout(() => {
+					document.body.classList.remove('modal-is-opening');
+				}, duration);
+
+				dialog.showModal();
+
+				closeModal = () => {
+					document.body.classList.add('modal-is-closing');
+					setTimeout(() => {
+						document.body.classList.remove('modal-is-open');
+						document.body.classList.remove('modal-is-closing');
+						dialog.close();
+					}, duration);
+				};
+
+				dialog.querySelector('button').addEventListener('click', () => {
+					closeModal();
+				});
+
+				document.addEventListener('click', (event) => {
+					const isClickInside = dialogContent.contains(event.target);
+					if (!isClickInside) {
+						closeModal();
+					}
+				}, { once: true });
+
+				document.addEventListener('keydown', (event) => {
+					if (event.key === 'Escape') {
+						closeModal();
+						event.preventDefault();
+						event.stopPropagation();
+						return false;
+					}
+				}, { once: true });
+			})()
+		</script>
+	</dialog>
+}

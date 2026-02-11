@@ -28,6 +28,7 @@ func hGet(
 	})
 }
 
+//nolint:unused // Will be used when visit creation is implemented
 func hPost(
 	app *entry.App,
 	logger *slog.Logger,
@@ -68,6 +69,12 @@ func hPost(
 		// visit, err := app.CreateVisit( ... )
 		// http.Redirect( ... )
 		// TODO: Come back to this
+
+		_ = visitor
+		_ = maxUses
+		_ = validFrom
+		_ = validTo
+
 		return nil
 	})
 }
