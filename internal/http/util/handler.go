@@ -72,5 +72,6 @@ func errorAs[T any](err error) (T, bool) {
 
 func errorModal(w http.ResponseWriter, r *http.Request, msg string, code int) {
 	w.Header().Set("HX-Retarget", "#error-modal")
+	w.WriteHeader(code)
 	_ = common.ErrorModal(msg).Render(r.Context(), w)
 }

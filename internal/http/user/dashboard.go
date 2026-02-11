@@ -28,6 +28,7 @@ func hGet(
 	})
 }
 
+//nolint:unused // Will be used when visit creation is implemented
 func hPost(
 	app *entry.App,
 	logger *slog.Logger,
