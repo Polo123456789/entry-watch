@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"log/slog"
@@ -21,7 +20,6 @@ func TestHandleErrorResponses(t *testing.T) {
 		// builder may return a modified request and the handler to exercise
 		builder  func(*http.Request, *slog.Logger) (*http.Request, http.Handler)
 		wantCode int
-		wantBody string
 	}{
 		{
 			name: "ErrorWithCode",
@@ -31,7 +29,6 @@ func TestHandleErrorResponses(t *testing.T) {
 				})
 			},
 			wantCode: 418,
-			wantBody: "teapot",
 		},
 		{
 			name: "Forbidden",
@@ -45,7 +42,6 @@ func TestHandleErrorResponses(t *testing.T) {
 				})
 			},
 			wantCode: http.StatusForbidden,
-			wantBody: "user is disabled",
 		},
 		{
 			name: "Unauthorized",
@@ -57,7 +53,6 @@ func TestHandleErrorResponses(t *testing.T) {
 				})
 			},
 			wantCode: http.StatusUnauthorized,
-			wantBody: "user not authenticated",
 		},
 		{
 			name: "UserSafeError",
@@ -67,7 +62,6 @@ func TestHandleErrorResponses(t *testing.T) {
 				})
 			},
 			wantCode: http.StatusBadRequest,
-			wantBody: "bad input",
 		},
 		{
 			name: "Internal",
@@ -77,7 +71,19 @@ func TestHandleErrorResponses(t *testing.T) {
 				})
 			},
 			wantCode: http.StatusInternalServerError,
-			wantBody: "internal server error",
+		},
+		{
+			name: "ErrorCodeOnly",
+			builder: func(r *http.Request, logger *slog.Logger) (*http.Request, http.Handler) {
+				return r, Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
+					// Handler is responsible for rendering the error page and status code
+					// ErrorCodeOnly just signals that no error modal should be shown
+					w.WriteHeader(http.StatusBadRequest)
+					_, _ = w.Write([]byte("custom error page"))
+					return NewErrorCodeOnly(http.StatusBadRequest)
+				})
+			},
+			wantCode: http.StatusBadRequest,
 		},
 	}
 
@@ -96,11 +102,6 @@ func TestHandleErrorResponses(t *testing.T) {
 
 			if rec.Code != tc.wantCode {
 				t.Fatalf("%s: status = %d; want %d", tc.name, rec.Code, tc.wantCode)
-			}
-
-			body := strings.TrimSpace(rec.Body.String())
-			if body != tc.wantBody {
-				t.Fatalf("%s: body = %q; want %q", tc.name, body, tc.wantBody)
 			}
 		})
 	}

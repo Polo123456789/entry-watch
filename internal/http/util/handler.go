@@ -27,9 +27,10 @@ func HandleError(
 ) {
 	if e, ok := errorAs[*ErrorWithCode](err); ok {
 		errorModal(w, r, e.Error(), e.code)
-	} else if e, ok := errorAs[*ErrorCodeOnly](err); ok {
-		// Handler already rendered the error message, just set the status code
-		w.WriteHeader(e.code)
+	} else if _, ok := errorAs[*ErrorCodeOnly](err); ok {
+		// Handler already rendered the complete response (status + body)
+		// No further action needed - error serves only to signal no modal should be shown
+		return
 	} else if e, ok := errorAs[*entry.ForbiddenError](err); ok {
 		errorModal(w, r, e.Error(), http.StatusForbidden)
 	} else if e, ok := errorAs[*entry.UnauthorizedError](err); ok {
