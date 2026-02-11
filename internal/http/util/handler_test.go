@@ -76,9 +76,7 @@ func TestHandleErrorResponses(t *testing.T) {
 			name: "ErrorCodeOnly",
 			builder: func(r *http.Request, logger *slog.Logger) (*http.Request, http.Handler) {
 				return r, Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-					// Handler is responsible for rendering the error page and status code
-					// ErrorCodeOnly just signals that no error modal should be shown
-					w.WriteHeader(http.StatusBadRequest)
+					// Handler is responsible for rendering the error page
 					_, _ = w.Write([]byte("custom error page"))
 					return NewErrorCodeOnly(http.StatusBadRequest)
 				})
