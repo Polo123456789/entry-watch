@@ -12,25 +12,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type AdminHandlers struct {
-	userStore auth.UserStore
-	app       *entry.App
-}
-
-func NewAdminHandlers(userStore auth.UserStore, app *entry.App) *AdminHandlers {
-	return &AdminHandlers{
-		userStore: userStore,
-		app:       app,
-	}
-}
-
-func (h *AdminHandlers) List(logger *slog.Logger) http.Handler {
+func hAdminsList(userStore auth.UserStore, app *entry.App, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		admins, err := h.userStore.UserListByRole(r.Context(), entry.RoleAdmin)
+		admins, err := userStore.UserListByRole(r.Context(), entry.RoleAdmin)
 		if err != nil {
 			return err
 		}
-		condos, err := h.app.CondoList(r.Context())
+		condos, err := app.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
@@ -38,9 +26,9 @@ func (h *AdminHandlers) List(logger *slog.Logger) http.Handler {
 	})
 }
 
-func (h *AdminHandlers) New(logger *slog.Logger) http.Handler {
+func hAdminsNew(app *entry.App, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		condos, err := h.app.CondoList(r.Context())
+		condos, err := app.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
@@ -48,7 +36,7 @@ func (h *AdminHandlers) New(logger *slog.Logger) http.Handler {
 	})
 }
 
-func (h *AdminHandlers) Create(logger *slog.Logger) http.Handler {
+func hAdminsCreate(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
 		if err := r.ParseForm(); err != nil {
 			return err
@@ -84,7 +72,7 @@ func (h *AdminHandlers) Create(logger *slog.Logger) http.Handler {
 			return err
 		}
 
-		_, err = h.userStore.CreateUser(r.Context(), user, string(hash))
+		_, err = userStore.CreateUser(r.Context(), user, string(hash))
 		if err != nil {
 			return err
 		}
@@ -94,14 +82,14 @@ func (h *AdminHandlers) Create(logger *slog.Logger) http.Handler {
 	})
 }
 
-func (h *AdminHandlers) Edit(logger *slog.Logger) http.Handler {
+func hAdminsEdit(userStore auth.UserStore, app *entry.App, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
 
-		user, ok, err := h.userStore.GetByID(r.Context(), id)
+		user, ok, err := userStore.GetByID(r.Context(), id)
 		if err != nil {
 			return err
 		}
@@ -109,7 +97,7 @@ func (h *AdminHandlers) Edit(logger *slog.Logger) http.Handler {
 			return util.NewErrorWithCode("Administrador no encontrado", http.StatusNotFound)
 		}
 
-		condos, err := h.app.CondoList(r.Context())
+		condos, err := app.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
@@ -118,7 +106,7 @@ func (h *AdminHandlers) Edit(logger *slog.Logger) http.Handler {
 	})
 }
 
-func (h *AdminHandlers) Update(logger *slog.Logger) http.Handler {
+func hAdminsUpdate(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
@@ -155,7 +143,7 @@ func (h *AdminHandlers) Update(logger *slog.Logger) http.Handler {
 			Enabled:       r.FormValue("enabled") == "on",
 		}
 
-		_, err = h.userStore.UserUpdate(r.Context(), id, user, currentUser.ID)
+		_, err = userStore.UserUpdate(r.Context(), id, user, currentUser.ID)
 		if err != nil {
 			return err
 		}
@@ -165,7 +153,7 @@ func (h *AdminHandlers) Update(logger *slog.Logger) http.Handler {
 			if err != nil {
 				return err
 			}
-			if err := h.userStore.UserUpdatePassword(r.Context(), id, string(hash), currentUser.ID); err != nil {
+			if err := userStore.UserUpdatePassword(r.Context(), id, string(hash), currentUser.ID); err != nil {
 				return err
 			}
 		}
@@ -175,14 +163,14 @@ func (h *AdminHandlers) Update(logger *slog.Logger) http.Handler {
 	})
 }
 
-func (h *AdminHandlers) Delete(logger *slog.Logger) http.Handler {
+func hAdminsDelete(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
 
-		if err := h.userStore.UserDelete(r.Context(), id); err != nil {
+		if err := userStore.UserDelete(r.Context(), id); err != nil {
 			return err
 		}
 
