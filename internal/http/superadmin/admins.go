@@ -6,26 +6,31 @@ import (
 	"strconv"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 	"github.com/Polo123456789/entry-watch/internal/http/util"
 	templates "github.com/Polo123456789/entry-watch/internal/templates/superadmin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminHandlers struct {
-	store AdminStore
+	userStore auth.UserStore
+	appStore  entry.Store
 }
 
-func NewAdminHandlers(store AdminStore) *AdminHandlers {
-	return &AdminHandlers{store: store}
+func NewAdminHandlers(userStore auth.UserStore, appStore entry.Store) *AdminHandlers {
+	return &AdminHandlers{
+		userStore: userStore,
+		appStore:  appStore,
+	}
 }
 
 func (h *AdminHandlers) List(logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		admins, err := h.store.UserListByRole(r.Context(), entry.RoleAdmin)
+		admins, err := h.userStore.UserListByRole(r.Context(), entry.RoleAdmin)
 		if err != nil {
 			return err
 		}
-		condos, err := h.store.CondoList(r.Context())
+		condos, err := h.appStore.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
@@ -35,7 +40,7 @@ func (h *AdminHandlers) List(logger *slog.Logger) http.Handler {
 
 func (h *AdminHandlers) New(logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		condos, err := h.store.CondoList(r.Context())
+		condos, err := h.appStore.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
@@ -51,12 +56,13 @@ func (h *AdminHandlers) Create(logger *slog.Logger) http.Handler {
 
 		condoID, _ := parseInt64(r.FormValue("condominium_id"))
 
-		admin := &entry.AdminUser{
+		user := &auth.User{
+			CondominiumID: condoID,
 			FirstName:     r.FormValue("first_name"),
 			LastName:      r.FormValue("last_name"),
 			Email:         r.FormValue("email"),
 			Phone:         r.FormValue("phone"),
-			CondominiumID: condoID,
+			Role:          entry.RoleAdmin,
 			Enabled:       r.FormValue("enabled") == "on",
 		}
 
@@ -70,7 +76,7 @@ func (h *AdminHandlers) Create(logger *slog.Logger) http.Handler {
 			return err
 		}
 
-		_, err = h.store.UserCreate(r.Context(), admin, string(hash))
+		_, err = h.userStore.CreateUser(r.Context(), user, string(hash))
 		if err != nil {
 			return err
 		}
@@ -88,7 +94,7 @@ func (h *AdminHandlers) Edit(logger *slog.Logger) http.Handler {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
 
-		admin, ok, err := h.store.UserGetByID(r.Context(), id)
+		user, ok, err := h.userStore.GetByID(r.Context(), id)
 		if err != nil {
 			return err
 		}
@@ -96,12 +102,12 @@ func (h *AdminHandlers) Edit(logger *slog.Logger) http.Handler {
 			return util.NewErrorWithCode("Administrador no encontrado", http.StatusNotFound)
 		}
 
-		condos, err := h.store.CondoList(r.Context())
+		condos, err := h.appStore.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
 
-		return templates.AdminForm(admin, condos).Render(r.Context(), w)
+		return templates.AdminForm(user, condos).Render(r.Context(), w)
 	})
 }
 
@@ -117,19 +123,19 @@ func (h *AdminHandlers) Update(logger *slog.Logger) http.Handler {
 			return err
 		}
 
-		user := entry.UserFromCtx(r.Context())
+		currentUser := entry.UserFromCtx(r.Context())
 		condoID, _ := parseInt64(r.FormValue("condominium_id"))
 
-		admin := &entry.AdminUser{
+		user := &auth.User{
+			CondominiumID: condoID,
 			FirstName:     r.FormValue("first_name"),
 			LastName:      r.FormValue("last_name"),
 			Email:         r.FormValue("email"),
 			Phone:         r.FormValue("phone"),
-			CondominiumID: condoID,
 			Enabled:       r.FormValue("enabled") == "on",
 		}
 
-		_, err = h.store.UserUpdate(r.Context(), id, admin, user.ID)
+		_, err = h.userStore.UserUpdate(r.Context(), id, user, currentUser.ID)
 		if err != nil {
 			return err
 		}
@@ -147,7 +153,7 @@ func (h *AdminHandlers) Delete(logger *slog.Logger) http.Handler {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
 
-		if err := h.store.UserDelete(r.Context(), id); err != nil {
+		if err := h.userStore.UserDelete(r.Context(), id); err != nil {
 			return err
 		}
 

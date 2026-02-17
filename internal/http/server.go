@@ -11,7 +11,6 @@ import (
 	"github.com/Polo123456789/assert"
 	"github.com/Polo123456789/entry-watch/internal/entry"
 	"github.com/Polo123456789/entry-watch/internal/http/auth"
-	"github.com/Polo123456789/entry-watch/internal/sqlc"
 	"github.com/gorilla/sessions"
 )
 
@@ -22,7 +21,6 @@ func NewServer(
 	logger *slog.Logger,
 	session sessions.Store,
 	userStore auth.UserStore,
-	sqlcUserStore *sqlc.UserStore,
 ) *http.Server {
 	assert.NotEquals(address, "")
 	assert.MoreThan(port, 0)
@@ -36,7 +34,6 @@ func NewServer(
 		logger,
 		session,
 		userStore,
-		sqlcUserStore,
 	)
 
 	var handler http.Handler = mux

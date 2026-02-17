@@ -12,7 +12,6 @@ import (
 	"github.com/Polo123456789/entry-watch/internal/http/guard"
 	"github.com/Polo123456789/entry-watch/internal/http/superadmin"
 	"github.com/Polo123456789/entry-watch/internal/http/user"
-	"github.com/Polo123456789/entry-watch/internal/sqlc"
 	"github.com/Polo123456789/entry-watch/web"
 )
 
@@ -22,13 +21,9 @@ func setupRoutes(
 	logger *slog.Logger,
 	session sessions.Store,
 	userStore auth.UserStore,
-	sqlcUserStore *sqlc.UserStore,
 ) {
 	mux.Handle("/auth/", auth.Handle(logger, session, userStore))
-
-	superadminStore := superadmin.NewStoreAdapter(sqlcUserStore, app.Store())
-	mux.Handle("/super/", superadmin.Handle(app, logger, superadminStore))
-
+	mux.Handle("/super/", superadmin.Handle(app, logger, userStore))
 	mux.Handle("/admin/", admin.Handle(app, logger))
 	mux.Handle("/guard/", guard.Handle(app, logger))
 	mux.Handle("/neighbor/", user.Handle(app, logger))

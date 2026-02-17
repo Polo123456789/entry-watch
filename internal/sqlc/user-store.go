@@ -86,19 +86,14 @@ func (s *UserStore) CountSuperAdmins(ctx context.Context) (int64, error) {
 	return s.queries.CountSuperAdmins(ctx)
 }
 
-type UserWithCondo struct {
-	*auth.User
-	CondoName string
-}
-
-func (s *UserStore) UserListByRole(ctx context.Context, role entry.UserRole) ([]UserWithCondo, error) {
+func (s *UserStore) UserListByRole(ctx context.Context, role entry.UserRole) ([]auth.UserWithCondo, error) {
 	rows, err := s.queries.UserListByRole(ctx, string(role))
 	if err != nil {
 		return nil, err
 	}
-	result := make([]UserWithCondo, len(rows))
+	result := make([]auth.UserWithCondo, len(rows))
 	for i, row := range rows {
-		result[i] = UserWithCondo{
+		result[i] = auth.UserWithCondo{
 			User:      row.unmarshall(),
 			CondoName: validNullString(row.CondoName),
 		}

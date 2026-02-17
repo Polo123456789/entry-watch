@@ -5,13 +5,14 @@ import (
 	"net/http"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 	"github.com/Polo123456789/entry-watch/internal/http/util"
 )
 
 func Handle(
 	app *entry.App,
 	logger *slog.Logger,
-	store AdminStore,
+	userStore auth.UserStore,
 ) http.Handler {
 	mux := http.NewServeMux()
 
@@ -24,7 +25,7 @@ func Handle(
 	mux.Handle("POST /super/condos/{id}", hCondosUpdate(app, logger))
 	mux.Handle("POST /super/condos/{id}/delete", hCondosDelete(app, logger))
 
-	adminHandlers := NewAdminHandlers(store)
+	adminHandlers := NewAdminHandlers(userStore, app.Store())
 	mux.Handle("GET /super/admins", adminHandlers.List(logger))
 	mux.Handle("GET /super/admins/new", adminHandlers.New(logger))
 	mux.Handle("POST /super/admins", adminHandlers.Create(logger))

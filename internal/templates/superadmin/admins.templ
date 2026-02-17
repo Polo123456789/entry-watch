@@ -4,9 +4,10 @@ import (
 	"strconv"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 )
 
-templ AdminsList(admins []*entry.AdminUser, condos []*entry.Condominium) {
+templ AdminsList(admins []auth.UserWithCondo, condos []*entry.Condominium) {
 	@Layout("Administradores") {
 		<section>
 			<div class="flex" style="justify-content: space-between; align-items: center;">
@@ -51,7 +52,7 @@ templ AdminsList(admins []*entry.AdminUser, condos []*entry.Condominium) {
 	}
 }
 
-templ AdminForm(admin *entry.AdminUser, condos []*entry.Condominium) {
+templ AdminForm(admin *auth.User, condos []*entry.Condominium) {
 	@Layout("Administrador") {
 		<section>
 			if admin == nil {
@@ -110,14 +111,14 @@ templ AdminForm(admin *entry.AdminUser, condos []*entry.Condominium) {
 	}
 }
 
-func adminFormAction(admin *entry.AdminUser) string {
+func adminFormAction(admin *auth.User) string {
 	if admin == nil {
 		return "/super/admins"
 	}
 	return "/super/admins/" + int64ToStr(admin.ID)
 }
 
-func adminValue(admin *entry.AdminUser, field string) string {
+func adminValue(admin *auth.User, field string) string {
 	if admin == nil {
 		return ""
 	}
