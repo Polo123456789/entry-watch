@@ -25,7 +25,7 @@ func Handle(
 	mux.Handle("POST /super/condos/{id}", hCondosUpdate(app, logger))
 	mux.Handle("POST /super/condos/{id}/delete", hCondosDelete(app, logger))
 
-	adminHandlers := NewAdminHandlers(userStore, app.Store())
+	adminHandlers := NewAdminHandlers(userStore, app)
 	mux.Handle("GET /super/admins", adminHandlers.List(logger))
 	mux.Handle("GET /super/admins/new", adminHandlers.New(logger))
 	mux.Handle("POST /super/admins", adminHandlers.Create(logger))

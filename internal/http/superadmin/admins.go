@@ -14,13 +14,13 @@ import (
 
 type AdminHandlers struct {
 	userStore auth.UserStore
-	appStore  entry.Store
+	app       *entry.App
 }
 
-func NewAdminHandlers(userStore auth.UserStore, appStore entry.Store) *AdminHandlers {
+func NewAdminHandlers(userStore auth.UserStore, app *entry.App) *AdminHandlers {
 	return &AdminHandlers{
 		userStore: userStore,
-		appStore:  appStore,
+		app:       app,
 	}
 }
 
@@ -30,7 +30,7 @@ func (h *AdminHandlers) List(logger *slog.Logger) http.Handler {
 		if err != nil {
 			return err
 		}
-		condos, err := h.appStore.CondoList(r.Context())
+		condos, err := h.app.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
@@ -40,7 +40,7 @@ func (h *AdminHandlers) List(logger *slog.Logger) http.Handler {
 
 func (h *AdminHandlers) New(logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		condos, err := h.appStore.CondoList(r.Context())
+		condos, err := h.app.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func (h *AdminHandlers) Edit(logger *slog.Logger) http.Handler {
 			return util.NewErrorWithCode("Administrador no encontrado", http.StatusNotFound)
 		}
 
-		condos, err := h.appStore.CondoList(r.Context())
+		condos, err := h.app.CondoList(r.Context())
 		if err != nil {
 			return err
 		}
