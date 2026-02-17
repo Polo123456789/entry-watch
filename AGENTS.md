@@ -61,6 +61,39 @@ Este patrón asegura:
 - Store enfocado exclusivamente en persistencia
 - Fácil testeo de validación sin mocks de base de datos
 
+Patrón de validación con interfaz Valid
+---------------------------------------
+Los tipos de dominio implementan la interfaz `Valid` definida en `internal/entry/app.go`:
+
+```go
+type Valid interface {
+    Valid() error
+}
+```
+
+Cada tipo valida sus campos en el método `Valid()`:
+
+```go
+type Condominium struct {
+    ID        int64
+    Name      string
+    Address   string
+    // ...
+}
+
+func (c *Condominium) Valid() error {
+    if len(c.Name) == 0 || len(c.Name) > 200 {
+        return NewUserSafeError("El nombre debe tener entre 1 y 200 caracteres")
+    }
+    if len(c.Address) == 0 || len(c.Address) > 500 {
+        return NewUserSafeError("La dirección debe tener entre 1 y 500 caracteres")
+    }
+    return nil
+}
+```
+
+App llama a `entity.Valid()` antes de persistir los datos. Los errores de validación siempre son `UserSafeError` para mostrar mensajes en español al usuario.
+
 4) Convenciones de estilo y prácticas (específicas)
 --------------------------------------------------
 
