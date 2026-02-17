@@ -85,6 +85,7 @@ func main() {
 		logger,
 		sessionStore,
 		userStore,
+		userStore,
 	)
 
 	apphttp.RunServer(ctx, cancel, server, logger)
