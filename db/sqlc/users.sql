@@ -37,3 +37,21 @@ WHERE role = 'superadmin' AND enabled = 1;
 UPDATE users
 SET password = ?, updated_at = ?, updated_by = ?
 WHERE id = ?;
+
+-- name: UserListByRole :many
+SELECT u.*, c.name AS condo_name
+FROM users u
+LEFT JOIN condominiums c ON u.condominium_id = c.id
+WHERE u.role = ?
+ORDER BY u.last_name, u.first_name;
+
+-- name: UserUpdate :one
+UPDATE users
+SET first_name = ?, last_name = ?, email = ?, phone = ?,
+    condominium_id = ?, enabled = ?, updated_at = ?, updated_by = ?
+WHERE id = ?
+RETURNING *;
+
+-- name: UserDelete :exec
+DELETE FROM users
+WHERE id = ?;

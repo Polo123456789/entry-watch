@@ -16,6 +16,7 @@ type Condominium struct {
 }
 
 type CondominiumStore interface {
+	CondoList(ctx context.Context) ([]*Condominium, error)
 	CondoGetByID(ctx context.Context, id int64) (*Condominium, error)
 	CondoCreate(ctx context.Context, condo *Condominium) (*Condominium, error)
 	CondoUpdate(
@@ -23,4 +24,5 @@ type CondominiumStore interface {
 		id int64,
 		updateFn func(condo *Condominium) (*Condominium, error),
 	) error
+	CondoDelete(ctx context.Context, id int64) error
 }
