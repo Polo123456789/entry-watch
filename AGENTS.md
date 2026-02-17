@@ -43,6 +43,24 @@ Ejecutar un solo test
 -- Handlers y vistas por tipo de usuario (UI): cada rol tiene su propio paquete bajo `internal/http/` — por ejemplo `internal/http/user`, `internal/http/superadmin`, `internal/http/admin`, `internal/http/guard`. Cada paquete contiene las vistas/handlers específicos de ese rol y debe consumir servicios de dominio o `internal/http/auth` para la lógica compartida.
 - Código sqlc generado: `internal/sqlc` — mantener generado y no editar; implementaciones manuales y wrappers deben vivir "junto a" los generados.
 
+Arquitectura de flujo de datos
+------------------------------
+El flujo de datos sigue un patrón de capas estricto:
+
+    Cliente (handler) → App → Store
+
+1. **Cliente (handler)**: Recibe datos del request HTTP (sin validar) y los pasa a App. No debe contener lógica de validación ni de negocio.
+
+2. **App (`internal/entry/app.go`)**: Responsable de validar todos los datos de entrada, aplicar reglas de negocio y delegar al Store. Es la única capa que conoce las reglas de validación y puede modificar datos antes de persistirlos.
+
+3. **Store (`internal/sqlc/`)**: Responsable únicamente de persistir y recuperar datos. No valida, solo ejecuta operaciones de base de datos.
+
+Este patrón asegura:
+- Handlers minimalistas que solo extraen datos del request
+- Validación centralizada y consistente en App
+- Store enfocado exclusivamente en persistencia
+- Fácil testeo de validación sin mocks de base de datos
+
 4) Convenciones de estilo y prácticas (específicas)
 --------------------------------------------------
 
