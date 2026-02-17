@@ -110,6 +110,30 @@ Nombres y tipos
 Funciones y contexto
 - Para funciones que operan con request-scoped data, el primer parámetro debe ser `ctx context.Context`.
 - Constructores: `NewXxx(...)` y devolver puntero cuando la instancia es mutable o costosa.
+* Si la lista de parametros es larga, colocalos en una linea propia si caben, o en varias lineas si no.
+
+```go
+func (a *App) CondoCreate(ctx context.Context, name, address string, createdBy int64) (*Condominium, error)
+```
+
+Pasa a ser:
+
+```go
+func (a *App) CondoCreate(
+    ctx context.Context, name string, address string, createdBy int64,
+) (*Condominium, error)
+```
+
+O si no caben en una línea:
+
+```go
+func (a *App) CondoCreate(
+    ctx context.Context,
+    name string,
+    address string,
+    createdBy int64,
+) (*Condominium, error)
+```
 
 Errores
 - Siempre devolver `error` como último valor. Wrappea errores con `fmt.Errorf("...: %w", err)` para preservar cadena.
