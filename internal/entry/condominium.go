@@ -41,7 +41,9 @@ func (a *App) CondoList(ctx context.Context) ([]*Condominium, error) {
 	return a.store.CondoList(ctx)
 }
 
-func (a *App) CondoGetByID(ctx context.Context, id int64) (*Condominium, error) {
+func (a *App) CondoGetByID(
+	ctx context.Context, id int64,
+) (*Condominium, error) {
 	return a.store.CondoGetByID(ctx, id)
 }
 
