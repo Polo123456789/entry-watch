@@ -14,6 +14,8 @@ type Store struct {
 	*Queries
 }
 
+var _ entry.Store = (*Store)(nil)
+
 func NewStore(db *sql.DB) *Store {
 	return &Store{
 		db:      db,
