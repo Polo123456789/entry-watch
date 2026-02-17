@@ -60,7 +60,7 @@ templ AdminForm(admin *auth.User, condos []*entry.Condominium) {
 			} else {
 				<h1>Editar Administrador</h1>
 			}
-			<form method="post" action={ templ.URL(adminFormAction(admin)) }>
+			<form method="post" action={ templ.URL(adminFormAction(admin)) } hx-boost="true">
 				<label>
 					Nombre
 					<input type="text" name="first_name" required value={ adminValue(admin, "first_name") }/>
@@ -91,7 +91,9 @@ templ AdminForm(admin *auth.User, condos []*entry.Condominium) {
 					</select>
 				</label>
 				<label>
-					<input type="checkbox" name="enabled" if admin != nil && admin.Enabled { checked }/>
+					<input type="checkbox" name="enabled" if admin != nil && admin.Enabled {
+	checked
+}/>
 					Activo
 				</label>
 				<label>
