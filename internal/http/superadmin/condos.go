@@ -56,11 +56,11 @@ func hCondosEdit(app *entry.App, logger *slog.Logger) http.Handler {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
 
-		condo, err := app.CondoGetByID(r.Context(), id)
+		condo, ok, err := app.CondoGetByID(r.Context(), id)
 		if err != nil {
 			return err
 		}
-		if condo == nil {
+		if !ok {
 			return util.NewErrorWithCode("Condominio no encontrado", http.StatusNotFound)
 		}
 

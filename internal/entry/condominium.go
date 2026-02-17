@@ -27,7 +27,7 @@ func (c *Condominium) Valid() error {
 
 type CondominiumStore interface {
 	CondoList(ctx context.Context) ([]*Condominium, error)
-	CondoGetByID(ctx context.Context, id int64) (*Condominium, error)
+	CondoGetByID(ctx context.Context, id int64) (*Condominium, bool, error)
 	CondoCreate(ctx context.Context, condo *Condominium) (*Condominium, error)
 	CondoUpdate(
 		ctx context.Context,
@@ -41,9 +41,7 @@ func (a *App) CondoList(ctx context.Context) ([]*Condominium, error) {
 	return a.store.CondoList(ctx)
 }
 
-func (a *App) CondoGetByID(
-	ctx context.Context, id int64,
-) (*Condominium, error) {
+func (a *App) CondoGetByID(ctx context.Context, id int64) (*Condominium, bool, error) {
 	return a.store.CondoGetByID(ctx, id)
 }
 
