@@ -133,6 +133,15 @@ func (s *UserStore) UserDelete(ctx context.Context, id int64) error {
 	return s.queries.UserDelete(ctx, id)
 }
 
+func (s *UserStore) UserUpdatePassword(ctx context.Context, id int64, passwordHash string, updatedBy int64) error {
+	return s.queries.UpdateUserPassword(ctx, UpdateUserPasswordParams{
+		ID:        id,
+		Password:  passwordHash,
+		UpdatedAt: time.Now().Unix(),
+		UpdatedBy: sql.NullInt64{Int64: updatedBy, Valid: updatedBy != 0},
+	})
+}
+
 func (u UserListByRoleRow) unmarshall() *auth.User {
 	return &auth.User{
 		ID:            u.ID,

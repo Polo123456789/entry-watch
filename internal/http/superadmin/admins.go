@@ -54,21 +54,29 @@ func (h *AdminHandlers) Create(logger *slog.Logger) http.Handler {
 			return err
 		}
 
-		condoID, _ := parseInt64(r.FormValue("condominium_id"))
+		firstName := r.FormValue("first_name")
+		lastName := r.FormValue("last_name")
+		email := r.FormValue("email")
+		phone := r.FormValue("phone")
+		password := r.FormValue("password")
+
+		if err := validateAdminInput(firstName, lastName, email, password, true); err != nil {
+			return err
+		}
+
+		condoID, err := strconv.ParseInt(r.FormValue("condominium_id"), 10, 64)
+		if err != nil || condoID == 0 {
+			return entry.NewUserSafeError("Debe seleccionar un condominio válido")
+		}
 
 		user := &auth.User{
 			CondominiumID: condoID,
-			FirstName:     r.FormValue("first_name"),
-			LastName:      r.FormValue("last_name"),
-			Email:         r.FormValue("email"),
-			Phone:         r.FormValue("phone"),
+			FirstName:     firstName,
+			LastName:      lastName,
+			Email:         email,
+			Phone:         phone,
 			Role:          entry.RoleAdmin,
 			Enabled:       r.FormValue("enabled") == "on",
-		}
-
-		password := r.FormValue("password")
-		if password == "" {
-			return entry.NewUserSafeError("La contraseña es requerida")
 		}
 
 		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -88,8 +96,7 @@ func (h *AdminHandlers) Create(logger *slog.Logger) http.Handler {
 
 func (h *AdminHandlers) Edit(logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		idStr := r.PathValue("id")
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
@@ -113,8 +120,7 @@ func (h *AdminHandlers) Edit(logger *slog.Logger) http.Handler {
 
 func (h *AdminHandlers) Update(logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		idStr := r.PathValue("id")
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
@@ -123,21 +129,45 @@ func (h *AdminHandlers) Update(logger *slog.Logger) http.Handler {
 			return err
 		}
 
+		firstName := r.FormValue("first_name")
+		lastName := r.FormValue("last_name")
+		email := r.FormValue("email")
+		phone := r.FormValue("phone")
+		password := r.FormValue("password")
+
+		if err := validateAdminInput(firstName, lastName, email, password, false); err != nil {
+			return err
+		}
+
 		currentUser := entry.UserFromCtx(r.Context())
-		condoID, _ := parseInt64(r.FormValue("condominium_id"))
+
+		condoID, err := strconv.ParseInt(r.FormValue("condominium_id"), 10, 64)
+		if err != nil || condoID == 0 {
+			return entry.NewUserSafeError("Debe seleccionar un condominio válido")
+		}
 
 		user := &auth.User{
 			CondominiumID: condoID,
-			FirstName:     r.FormValue("first_name"),
-			LastName:      r.FormValue("last_name"),
-			Email:         r.FormValue("email"),
-			Phone:         r.FormValue("phone"),
+			FirstName:     firstName,
+			LastName:      lastName,
+			Email:         email,
+			Phone:         phone,
 			Enabled:       r.FormValue("enabled") == "on",
 		}
 
 		_, err = h.userStore.UserUpdate(r.Context(), id, user, currentUser.ID)
 		if err != nil {
 			return err
+		}
+
+		if password != "" {
+			hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			if err != nil {
+				return err
+			}
+			if err := h.userStore.UserUpdatePassword(r.Context(), id, string(hash), currentUser.ID); err != nil {
+				return err
+			}
 		}
 
 		http.Redirect(w, r, "/super/admins", http.StatusSeeOther)
@@ -147,8 +177,7 @@ func (h *AdminHandlers) Update(logger *slog.Logger) http.Handler {
 
 func (h *AdminHandlers) Delete(logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		idStr := r.PathValue("id")
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
@@ -160,4 +189,38 @@ func (h *AdminHandlers) Delete(logger *slog.Logger) http.Handler {
 		http.Redirect(w, r, "/super/admins", http.StatusSeeOther)
 		return nil
 	})
+}
+
+func validateAdminInput(firstName, lastName, email, password string, requirePassword bool) error {
+	if len(firstName) == 0 || len(firstName) > 100 {
+		return entry.NewUserSafeError("El nombre debe tener entre 1 y 100 caracteres")
+	}
+	if len(lastName) == 0 || len(lastName) > 100 {
+		return entry.NewUserSafeError("El apellido debe tener entre 1 y 100 caracteres")
+	}
+	if email == "" {
+		return entry.NewUserSafeError("El email es requerido")
+	}
+	if len(email) > 255 {
+		return entry.NewUserSafeError("El email no puede exceder 255 caracteres")
+	}
+	if requirePassword {
+		if password == "" {
+			return entry.NewUserSafeError("La contraseña es requerida")
+		}
+		if len(password) < 8 {
+			return entry.NewUserSafeError("La contraseña debe tener al menos 8 caracteres")
+		}
+		if len(password) > 72 {
+			return entry.NewUserSafeError("La contraseña no puede exceder 72 caracteres")
+		}
+	} else if password != "" {
+		if len(password) < 8 {
+			return entry.NewUserSafeError("La contraseña debe tener al menos 8 caracteres")
+		}
+		if len(password) > 72 {
+			return entry.NewUserSafeError("La contraseña no puede exceder 72 caracteres")
+		}
+	}
+	return nil
 }

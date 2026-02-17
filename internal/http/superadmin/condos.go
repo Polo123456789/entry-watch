@@ -1,7 +1,6 @@
 package superadmin
 
 import (
-	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -33,11 +32,18 @@ func hCondosCreate(app *entry.App, logger *slog.Logger) http.Handler {
 			return err
 		}
 
+		name := r.FormValue("name")
+		address := r.FormValue("address")
+
+		if err := validateCondoInput(name, address); err != nil {
+			return err
+		}
+
 		user := entry.UserFromCtx(r.Context())
 
 		condo := &entry.Condominium{
-			Name:      r.FormValue("name"),
-			Address:   r.FormValue("address"),
+			Name:      name,
+			Address:   address,
 			CreatedBy: user.ID,
 			UpdatedBy: user.ID,
 		}
@@ -54,8 +60,7 @@ func hCondosCreate(app *entry.App, logger *slog.Logger) http.Handler {
 
 func hCondosEdit(app *entry.App, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		idStr := r.PathValue("id")
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
@@ -74,8 +79,7 @@ func hCondosEdit(app *entry.App, logger *slog.Logger) http.Handler {
 
 func hCondosUpdate(app *entry.App, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		idStr := r.PathValue("id")
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
@@ -84,11 +88,18 @@ func hCondosUpdate(app *entry.App, logger *slog.Logger) http.Handler {
 			return err
 		}
 
+		name := r.FormValue("name")
+		address := r.FormValue("address")
+
+		if err := validateCondoInput(name, address); err != nil {
+			return err
+		}
+
 		user := entry.UserFromCtx(r.Context())
 
 		err = app.Store().CondoUpdate(r.Context(), id, func(condo *entry.Condominium) (*entry.Condominium, error) {
-			condo.Name = r.FormValue("name")
-			condo.Address = r.FormValue("address")
+			condo.Name = name
+			condo.Address = address
 			condo.UpdatedBy = user.ID
 			return condo, nil
 		})
@@ -103,8 +114,7 @@ func hCondosUpdate(app *entry.App, logger *slog.Logger) http.Handler {
 
 func hCondosDelete(app *entry.App, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
-		idStr := r.PathValue("id")
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
@@ -118,9 +128,12 @@ func hCondosDelete(app *entry.App, logger *slog.Logger) http.Handler {
 	})
 }
 
-func parseInt64(s string) (int64, error) {
-	if s == "" {
-		return 0, errors.New("empty string")
+func validateCondoInput(name, address string) error {
+	if len(name) == 0 || len(name) > 200 {
+		return entry.NewUserSafeError("El nombre debe tener entre 1 y 200 caracteres")
 	}
-	return strconv.ParseInt(s, 10, 64)
+	if len(address) == 0 || len(address) > 500 {
+		return entry.NewUserSafeError("La dirección debe tener entre 1 y 500 caracteres")
+	}
+	return nil
 }
