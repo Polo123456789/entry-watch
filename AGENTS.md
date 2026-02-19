@@ -94,6 +94,24 @@ func (c *Condominium) Valid() error {
 
 App llama a `entity.Valid()` antes de persistir los datos. Los errores de validación siempre son `UserSafeError` para mostrar mensajes en español al usuario.
 
+Campos de auditoría (createdAt, updatedAt, createdBy, updatedBy)
+---------------------------------------------------------------
+Los campos de auditoría son responsabilidad del Store, no de App ni de los handlers:
+
+- `createdAt`, `updatedAt`: el Store establece los timestamps automáticamente.
+- `createdBy`, `updatedBy`: el Store lee el usuario del contexto usando `entry.UserFromCtx(ctx)`.
+
+Los métodos de App no reciben estos valores como parámetros. Ejemplo:
+
+```go
+// Incorrecto
+func (a *App) CondoCreate(ctx context.Context, name, address string, createdBy int64) (*Condominium, error)
+
+// Correcto
+func (a *App) CondoCreate(ctx context.Context, name, address string) (*Condominium, error)
+// El Store lee el usuario del contexto internamente
+```
+
 4) Convenciones de estilo y prácticas (específicas)
 --------------------------------------------------
 

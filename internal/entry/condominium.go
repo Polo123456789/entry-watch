@@ -45,14 +45,10 @@ func (a *App) CondoGetByID(ctx context.Context, id int64) (*Condominium, bool, e
 	return a.store.CondoGetByID(ctx, id)
 }
 
-func (a *App) CondoCreate(
-	ctx context.Context, name, address string, createdBy int64,
-) (*Condominium, error) {
+func (a *App) CondoCreate(ctx context.Context, name, address string) (*Condominium, error) {
 	condo := &Condominium{
-		Name:      name,
-		Address:   address,
-		CreatedBy: createdBy,
-		UpdatedBy: createdBy,
+		Name:    name,
+		Address: address,
 	}
 	if err := condo.Valid(); err != nil {
 		return nil, err
@@ -60,15 +56,12 @@ func (a *App) CondoCreate(
 	return a.store.CondoCreate(ctx, condo)
 }
 
-func (a *App) CondoUpdate(
-	ctx context.Context, id int64, name, address string, updatedBy int64,
-) error {
+func (a *App) CondoUpdate(ctx context.Context, id int64, name, address string) error {
 	return a.store.CondoUpdate(
 		ctx, id,
 		func(condo *Condominium) (*Condominium, error) {
 			condo.Name = name
 			condo.Address = address
-			condo.UpdatedBy = updatedBy
 			if err := condo.Valid(); err != nil {
 				return nil, err
 			}

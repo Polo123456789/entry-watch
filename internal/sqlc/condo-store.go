@@ -34,13 +34,18 @@ func (s *Store) CondoGetByID(ctx context.Context, id int64) (*entry.Condominium,
 
 func (s *Store) CondoCreate(ctx context.Context, condo *entry.Condominium) (*entry.Condominium, error) {
 	now := time.Now().Unix()
+	user := entry.UserFromCtx(ctx)
+	var createdBy sql.NullInt64
+	if user != nil {
+		createdBy = sql.NullInt64{Int64: user.ID, Valid: true}
+	}
 	created, err := s.Queries.CondoCreate(ctx, CondoCreateParams{
 		Name:      condo.Name,
 		Address:   condo.Address,
 		CreatedAt: now,
 		UpdatedAt: now,
-		CreatedBy: sql.NullInt64{Int64: condo.CreatedBy, Valid: condo.CreatedBy != 0},
-		UpdatedBy: sql.NullInt64{Int64: condo.UpdatedBy, Valid: condo.UpdatedBy != 0},
+		CreatedBy: createdBy,
+		UpdatedBy: createdBy,
 	})
 	if err != nil {
 		return nil, err
@@ -64,12 +69,17 @@ func (s *Store) CondoUpdate(
 	if err != nil {
 		return err
 	}
+	user := entry.UserFromCtx(ctx)
+	var updatedBy sql.NullInt64
+	if user != nil {
+		updatedBy = sql.NullInt64{Int64: user.ID, Valid: true}
+	}
 	_, err = s.Queries.CondoUpdate(ctx, CondoUpdateParams{
 		ID:        id,
 		Name:      updated.Name,
 		Address:   updated.Address,
 		UpdatedAt: time.Now().Unix(),
-		UpdatedBy: sql.NullInt64{Int64: updated.UpdatedBy, Valid: updated.UpdatedBy != 0},
+		UpdatedBy: updatedBy,
 	})
 	return err
 }

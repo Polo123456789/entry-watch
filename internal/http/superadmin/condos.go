@@ -32,13 +32,10 @@ func hCondosCreate(app *entry.App, logger *slog.Logger) http.Handler {
 			return err
 		}
 
-		user := entry.UserFromCtx(r.Context())
-
 		_, err := app.CondoCreate(
 			r.Context(),
 			r.FormValue("name"),
 			r.FormValue("address"),
-			user.ID,
 		)
 		if err != nil {
 			return err
@@ -79,14 +76,11 @@ func hCondosUpdate(app *entry.App, logger *slog.Logger) http.Handler {
 			return err
 		}
 
-		user := entry.UserFromCtx(r.Context())
-
 		err = app.CondoUpdate(
 			r.Context(),
 			id,
 			r.FormValue("name"),
 			r.FormValue("address"),
-			user.ID,
 		)
 		if err != nil {
 			return err
