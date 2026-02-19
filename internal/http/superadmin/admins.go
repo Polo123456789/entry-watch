@@ -13,17 +13,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func hAdminsList(userStore auth.UserStore, app *entry.App, logger *slog.Logger) http.Handler {
+func hAdminsList(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
 		admins, err := userStore.UserListByRole(r.Context(), entry.RoleAdmin)
 		if err != nil {
 			return err
 		}
-		condos, err := app.CondoList(r.Context())
-		if err != nil {
-			return err
-		}
-		return templates.AdminsList(admins, condos).Render(r.Context(), w)
+		return templates.AdminsList(admins).Render(r.Context(), w)
 	})
 }
 
@@ -184,7 +180,9 @@ func hAdminsDelete(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 	})
 }
 
-func validateAdminInput(firstName, lastName, email, password string, requirePassword bool) error {
+func validateAdminInput(
+	firstName, lastName, email, password string, requirePassword bool,
+) error {
 	if len(firstName) == 0 || len(firstName) > 100 {
 		return entry.NewUserSafeError("El nombre debe tener entre 1 y 100 caracteres")
 	}

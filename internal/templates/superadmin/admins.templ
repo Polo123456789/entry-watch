@@ -7,7 +7,7 @@ import (
 	"github.com/Polo123456789/entry-watch/internal/http/auth"
 )
 
-templ AdminsList(admins []auth.UserWithCondo, condos []*entry.Condominium) {
+templ AdminsList(admins []auth.UserWithCondo) {
 	@Layout("Administradores") {
 		<section>
 			<div class="flex" style="justify-content: space-between; align-items: center;">
