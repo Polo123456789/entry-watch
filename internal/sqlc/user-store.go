@@ -60,6 +60,12 @@ func (s *UserStore) CreateUser(ctx context.Context, user *auth.User, passwordHas
 		phone = sql.NullString{String: user.Phone, Valid: true}
 	}
 
+	var createdBy, updatedBy sql.NullInt64
+	if currentUser := entry.UserFromCtx(ctx); currentUser != nil {
+		createdBy = sql.NullInt64{Int64: currentUser.ID, Valid: true}
+		updatedBy = sql.NullInt64{Int64: currentUser.ID, Valid: true}
+	}
+
 	createdUser, err := s.queries.CreateUser(ctx, CreateUserParams{
 		CondominiumID: condoID,
 		FirstName:     user.FirstName,
@@ -72,8 +78,8 @@ func (s *UserStore) CreateUser(ctx context.Context, user *auth.User, passwordHas
 		Hidden:        user.Hidden,
 		CreatedAt:     now,
 		UpdatedAt:     now,
-		CreatedBy:     sql.NullInt64{},
-		UpdatedBy:     sql.NullInt64{},
+		CreatedBy:     createdBy,
+		UpdatedBy:     updatedBy,
 	})
 	if err != nil {
 		return nil, err
