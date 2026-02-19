@@ -31,6 +31,7 @@ templ CondosList(condos []*entry.Condominium) {
 								<td>{ condo.Address }</td>
 								<td>
 									<a href={ "/super/condos/" + strconv.FormatInt(condo.ID, 10) + "/edit" } role="button" class="secondary">Editar</a>
+									<button hx-delete={ "/super/condos/" + strconv.FormatInt(condo.ID, 10) } hx-confirm="¿Eliminar este condominio?">Eliminar</button>
 								</td>
 							</tr>
 						}
@@ -49,7 +50,9 @@ templ CondoForm(condo *entry.Condominium) {
 			} else {
 				<h1>Editar Condominio</h1>
 			}
-			<form method="post" action={ templ.URL(condoFormAction(condo)) }>
+			<form method="post" action={ templ.URL(condoFormAction(condo)) } if condo != nil {
+	hx-put={ templ.URL(condoFormAction(condo)) }
+}>
 				<label>
 					Nombre
 					<input type="text" name="name" required value={ condoValue(condo, "name") }/>

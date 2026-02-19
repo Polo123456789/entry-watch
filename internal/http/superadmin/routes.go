@@ -22,15 +22,15 @@ func Handle(
 	mux.Handle("GET /super/condos/new", hCondosNew(app, logger))
 	mux.Handle("POST /super/condos", hCondosCreate(app, logger))
 	mux.Handle("GET /super/condos/{id}/edit", hCondosEdit(app, logger))
-	mux.Handle("POST /super/condos/{id}", hCondosUpdate(app, logger))
-	mux.Handle("POST /super/condos/{id}/delete", hCondosDelete(app, userStore, logger))
+	mux.Handle("PUT /super/condos/{id}", hCondosUpdate(app, logger))
+	mux.Handle("DELETE /super/condos/{id}", hCondosDelete(app, userStore, logger))
 
 	mux.Handle("GET /super/admins", hAdminsList(userStore, logger))
 	mux.Handle("GET /super/admins/new", hAdminsNew(app, logger))
 	mux.Handle("POST /super/admins", hAdminsCreate(userStore, logger))
 	mux.Handle("GET /super/admins/{id}/edit", hAdminsEdit(userStore, app, logger))
-	mux.Handle("POST /super/admins/{id}", hAdminsUpdate(userStore, logger))
-	mux.Handle("POST /super/admins/{id}/delete", hAdminsDelete(userStore, logger))
+	mux.Handle("PUT /super/admins/{id}", hAdminsUpdate(userStore, logger))
+	mux.Handle("DELETE /super/admins/{id}", hAdminsDelete(userStore, logger))
 
 	var handler http.Handler = mux
 	handler = authMiddleware(handler, logger)
