@@ -23,7 +23,7 @@ func Handle(
 	mux.Handle("POST /super/condos", hCondosCreate(app, logger))
 	mux.Handle("GET /super/condos/{id}/edit", hCondosEdit(app, logger))
 	mux.Handle("POST /super/condos/{id}", hCondosUpdate(app, logger))
-	mux.Handle("POST /super/condos/{id}/delete", hCondosDelete(app, logger))
+	mux.Handle("POST /super/condos/{id}/delete", hCondosDelete(app, userStore, logger))
 
 	mux.Handle("GET /super/admins", hAdminsList(userStore, app, logger))
 	mux.Handle("GET /super/admins/new", hAdminsNew(app, logger))

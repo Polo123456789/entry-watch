@@ -37,6 +37,7 @@ type UserStore interface {
 	UserUpdate(ctx context.Context, id int64, user *User) (*User, error)
 	UserUpdatePassword(ctx context.Context, id int64, passwordHash string) error
 	UserDelete(ctx context.Context, id int64) error
+	UserCountByCondo(ctx context.Context, condoID int64) (int64, error)
 }
 
 func (u *User) ToEntryUser() *entry.User {

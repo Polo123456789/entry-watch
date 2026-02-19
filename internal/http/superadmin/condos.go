@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 	"github.com/Polo123456789/entry-watch/internal/http/util"
 	templates "github.com/Polo123456789/entry-watch/internal/templates/superadmin"
 )
@@ -91,11 +92,22 @@ func hCondosUpdate(app *entry.App, logger *slog.Logger) http.Handler {
 	})
 }
 
-func hCondosDelete(app *entry.App, logger *slog.Logger) http.Handler {
+func hCondosDelete(app *entry.App, userStore auth.UserStore, logger *slog.Logger) http.Handler {
 	return util.Handler(logger, func(w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 		if err != nil {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
+		}
+
+		count, err := userStore.UserCountByCondo(r.Context(), id)
+		if err != nil {
+			return err
+		}
+		if count > 0 {
+			return util.NewErrorWithCode(
+				"No se puede eliminar el condominio porque tiene usuarios asociados",
+				http.StatusConflict,
+			)
 		}
 
 		if err := app.CondoDelete(r.Context(), id); err != nil {

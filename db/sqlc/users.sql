@@ -55,3 +55,8 @@ RETURNING *;
 -- name: UserDelete :exec
 DELETE FROM users
 WHERE id = ?;
+
+-- name: CountUsersByCondo :one
+SELECT COUNT(*) AS count
+FROM users
+WHERE condominium_id = ?;

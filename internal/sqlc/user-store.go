@@ -151,6 +151,10 @@ func (s *UserStore) UserUpdatePassword(ctx context.Context, id int64, passwordHa
 	})
 }
 
+func (s *UserStore) UserCountByCondo(ctx context.Context, condoID int64) (int64, error) {
+	return s.queries.CountUsersByCondo(ctx, sql.NullInt64{Int64: condoID, Valid: true})
+}
+
 func (u UserListByRoleRow) unmarshall() *auth.User {
 	return &auth.User{
 		ID:            u.ID,
