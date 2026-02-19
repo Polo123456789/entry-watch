@@ -36,7 +36,6 @@ func NewServer(
 		userStore,
 	)
 
-	// Global middlewares
 	var handler http.Handler = mux
 	handler = CanonicalLoggerMiddleware(logger, session, handler)
 	handler = RecoverMiddleware(logger, handler)

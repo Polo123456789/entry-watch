@@ -1,0 +1,146 @@
+package templates
+
+import (
+	"strconv"
+
+	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
+)
+
+templ AdminsList(admins []auth.UserWithCondo) {
+	@Layout("Administradores") {
+		<section>
+			<div class="flex" style="justify-content: space-between; align-items: center;">
+				<h1>Administradores</h1>
+				<a href="/super/admins/new" role="button">Nuevo Administrador</a>
+			</div>
+			if len(admins) == 0 {
+				<p>No hay administradores registrados.</p>
+			} else {
+				<table>
+					<thead>
+						<tr>
+							<th>Nombre</th>
+							<th>Email</th>
+							<th>Condominio</th>
+							<th>Estado</th>
+							<th>Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, admin := range admins {
+							<tr>
+								<td>{ admin.FirstName + " " + admin.LastName }</td>
+								<td>{ admin.Email }</td>
+								<td>{ admin.CondoName }</td>
+								<td>
+									if admin.Enabled {
+										<span>Activo</span>
+									} else {
+										<span>Inactivo</span>
+									}
+								</td>
+								<td>
+									<a href={ "/super/admins/" + int64ToStr(admin.ID) + "/edit" } role="button" class="secondary">Editar</a>
+									<button hx-delete={ "/super/admins/" + int64ToStr(admin.ID) } hx-confirm="¿Eliminar este administrador?">Eliminar</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+		</section>
+	}
+}
+
+templ AdminForm(admin *auth.User, condos []*entry.Condominium) {
+	@Layout("Administrador") {
+		<section>
+			if admin == nil {
+				<h1>Nuevo Administrador</h1>
+			} else {
+				<h1>Editar Administrador</h1>
+			}
+			<form method="post" action={ templ.URL(adminFormAction(admin)) } if admin != nil {
+	hx-put={ templ.URL(adminFormAction(admin)) }
+}>
+				<label>
+					Nombre
+					<input type="text" name="first_name" required value={ adminValue(admin, "first_name") }/>
+				</label>
+				<label>
+					Apellido
+					<input type="text" name="last_name" required value={ adminValue(admin, "last_name") }/>
+				</label>
+				<label>
+					Email
+					<input type="email" name="email" required value={ adminValue(admin, "email") }/>
+				</label>
+				<label>
+					Teléfono
+					<input type="tel" name="phone" value={ adminValue(admin, "phone") }/>
+				</label>
+				<label>
+					Condominio
+					<select name="condominium_id" required>
+						<option value="">Seleccionar...</option>
+						for _, condo := range condos {
+							if admin != nil && admin.CondominiumID == condo.ID {
+								<option value={ int64ToStr(condo.ID) } selected>{ condo.Name }</option>
+							} else {
+								<option value={ int64ToStr(condo.ID) }>{ condo.Name }</option>
+							}
+						}
+					</select>
+				</label>
+				<label>
+					<input type="checkbox" name="enabled" if admin != nil && admin.Enabled {
+	checked
+}/>
+					Activo
+				</label>
+				<label>
+					Contraseña
+					if admin == nil {
+						<input type="password" name="password" required/>
+					} else {
+						<input type="password" name="password" placeholder="Dejar vacío para mantener"/>
+					}
+				</label>
+				<div class="grid">
+					<a href="/super/admins" role="button" class="secondary">Cancelar</a>
+					<button type="submit">Guardar</button>
+				</div>
+			</form>
+		</section>
+	}
+}
+
+func adminFormAction(admin *auth.User) string {
+	if admin == nil {
+		return "/super/admins"
+	}
+	return "/super/admins/" + int64ToStr(admin.ID)
+}
+
+func adminValue(admin *auth.User, field string) string {
+	if admin == nil {
+		return ""
+	}
+	switch field {
+	case "first_name":
+		return admin.FirstName
+	case "last_name":
+		return admin.LastName
+	case "email":
+		return admin.Email
+	case "phone":
+		return admin.Phone
+	default:
+		return ""
+	}
+}
+
+func int64ToStr(n int64) string {
+	return strconv.FormatInt(n, 10)
+}

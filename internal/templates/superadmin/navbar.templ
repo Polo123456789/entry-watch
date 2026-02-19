@@ -1,0 +1,25 @@
+package templates
+
+import "github.com/Polo123456789/entry-watch/internal/templates/common"
+
+templ Navbar() {
+	<nav>
+		<ul>
+			<li><strong>Visitas</strong></li>
+		</ul>
+		<ul>
+			<li><a href="/super/">Dashboard</a></li>
+			<li><a href="/super/condos">Condominios</a></li>
+			<li><a href="/super/admins">Administradores</a></li>
+		</ul>
+	</nav>
+}
+
+templ Layout(title string) {
+	@common.Layout(title, EmptyHeadTags(), Navbar()) {
+		{ children... }
+	}
+}
+
+templ EmptyHeadTags() {
+}

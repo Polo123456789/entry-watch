@@ -23,7 +23,7 @@ func setupRoutes(
 	userStore auth.UserStore,
 ) {
 	mux.Handle("/auth/", auth.Handle(logger, session, userStore))
-	mux.Handle("/super/", superadmin.Handle(app, logger))
+	mux.Handle("/super/", superadmin.Handle(app, logger, userStore))
 	mux.Handle("/admin/", admin.Handle(app, logger))
 	mux.Handle("/guard/", guard.Handle(app, logger))
 	mux.Handle("/neighbor/", user.Handle(app, logger))

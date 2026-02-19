@@ -43,6 +43,75 @@ Ejecutar un solo test
 -- Handlers y vistas por tipo de usuario (UI): cada rol tiene su propio paquete bajo `internal/http/` — por ejemplo `internal/http/user`, `internal/http/superadmin`, `internal/http/admin`, `internal/http/guard`. Cada paquete contiene las vistas/handlers específicos de ese rol y debe consumir servicios de dominio o `internal/http/auth` para la lógica compartida.
 - Código sqlc generado: `internal/sqlc` — mantener generado y no editar; implementaciones manuales y wrappers deben vivir "junto a" los generados.
 
+Arquitectura de flujo de datos
+------------------------------
+El flujo de datos sigue un patrón de capas estricto:
+
+    Cliente (handler) → App → Store
+
+1. **Cliente (handler)**: Recibe datos del request HTTP (sin validar) y los pasa a App. No debe contener lógica de validación ni de negocio.
+
+2. **App (`internal/entry/app.go`)**: Responsable de validar todos los datos de entrada, aplicar reglas de negocio y delegar al Store. Es la única capa que conoce las reglas de validación y puede modificar datos antes de persistirlos.
+
+3. **Store (`internal/sqlc/`)**: Responsable únicamente de persistir y recuperar datos. No valida, solo ejecuta operaciones de base de datos.
+
+Este patrón asegura:
+- Handlers minimalistas que solo extraen datos del request
+- Validación centralizada y consistente en App
+- Store enfocado exclusivamente en persistencia
+- Fácil testeo de validación sin mocks de base de datos
+
+Patrón de validación con interfaz Valid
+---------------------------------------
+Los tipos de dominio implementan la interfaz `Valid` definida en `internal/entry/app.go`:
+
+```go
+type Valid interface {
+    Valid() error
+}
+```
+
+Cada tipo valida sus campos en el método `Valid()`:
+
+```go
+type Condominium struct {
+    ID        int64
+    Name      string
+    Address   string
+    // ...
+}
+
+func (c *Condominium) Valid() error {
+    if len(c.Name) == 0 || len(c.Name) > 200 {
+        return NewUserSafeError("El nombre debe tener entre 1 y 200 caracteres")
+    }
+    if len(c.Address) == 0 || len(c.Address) > 500 {
+        return NewUserSafeError("La dirección debe tener entre 1 y 500 caracteres")
+    }
+    return nil
+}
+```
+
+App llama a `entity.Valid()` antes de persistir los datos. Los errores de validación siempre son `UserSafeError` para mostrar mensajes en español al usuario.
+
+Campos de auditoría (createdAt, updatedAt, createdBy, updatedBy)
+---------------------------------------------------------------
+Los campos de auditoría son responsabilidad del Store, no de App ni de los handlers:
+
+- `createdAt`, `updatedAt`: el Store establece los timestamps automáticamente.
+- `createdBy`, `updatedBy`: el Store lee el usuario del contexto usando `entry.UserFromCtx(ctx)`.
+
+Los métodos de App no reciben estos valores como parámetros. Ejemplo:
+
+```go
+// Incorrecto
+func (a *App) CondoCreate(ctx context.Context, name, address string, createdBy int64) (*Condominium, error)
+
+// Correcto
+func (a *App) CondoCreate(ctx context.Context, name, address string) (*Condominium, error)
+// El Store lee el usuario del contexto internamente
+```
+
 4) Convenciones de estilo y prácticas (específicas)
 --------------------------------------------------
 
@@ -59,6 +128,30 @@ Nombres y tipos
 Funciones y contexto
 - Para funciones que operan con request-scoped data, el primer parámetro debe ser `ctx context.Context`.
 - Constructores: `NewXxx(...)` y devolver puntero cuando la instancia es mutable o costosa.
+* Si la lista de parametros es larga, colocalos en una linea propia si caben, o en varias lineas si no.
+
+```go
+func (a *App) CondoCreate(ctx context.Context, name, address string, createdBy int64) (*Condominium, error)
+```
+
+Pasa a ser:
+
+```go
+func (a *App) CondoCreate(
+    ctx context.Context, name string, address string, createdBy int64,
+) (*Condominium, error)
+```
+
+O si no caben en una línea:
+
+```go
+func (a *App) CondoCreate(
+    ctx context.Context,
+    name string,
+    address string,
+    createdBy int64,
+) (*Condominium, error)
+```
 
 Errores
 - Siempre devolver `error` como último valor. Wrappea errores con `fmt.Errorf("...: %w", err)` para preservar cadena.

@@ -1,0 +1,92 @@
+package templates
+
+import (
+	"strconv"
+
+	"github.com/Polo123456789/entry-watch/internal/entry"
+)
+
+templ CondosList(condos []*entry.Condominium) {
+	@Layout("Condominios") {
+		<section>
+			<div class="flex" style="justify-content: space-between; align-items: center;">
+				<h1>Condominios</h1>
+				<a href="/super/condos/new" role="button">Nuevo Condominio</a>
+			</div>
+			if len(condos) == 0 {
+				<p>No hay condominios registrados.</p>
+			} else {
+				<table>
+					<thead>
+						<tr>
+							<th>Nombre</th>
+							<th>Dirección</th>
+							<th>Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, condo := range condos {
+							<tr>
+								<td>{ condo.Name }</td>
+								<td>{ condo.Address }</td>
+								<td>
+									<a href={ "/super/condos/" + strconv.FormatInt(condo.ID, 10) + "/edit" } role="button" class="secondary">Editar</a>
+									<button hx-delete={ "/super/condos/" + strconv.FormatInt(condo.ID, 10) } hx-confirm="¿Eliminar este condominio?">Eliminar</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+		</section>
+	}
+}
+
+templ CondoForm(condo *entry.Condominium) {
+	@Layout("Condominio") {
+		<section>
+			if condo == nil {
+				<h1>Nuevo Condominio</h1>
+			} else {
+				<h1>Editar Condominio</h1>
+			}
+			<form method="post" action={ templ.URL(condoFormAction(condo)) } if condo != nil {
+	hx-put={ templ.URL(condoFormAction(condo)) }
+}>
+				<label>
+					Nombre
+					<input type="text" name="name" required value={ condoValue(condo, "name") }/>
+				</label>
+				<label>
+					Dirección
+					<input type="text" name="address" required value={ condoValue(condo, "address") }/>
+				</label>
+				<div class="grid">
+					<a href="/super/condos" role="button" class="secondary">Cancelar</a>
+					<button type="submit">Guardar</button>
+				</div>
+			</form>
+		</section>
+	}
+}
+
+func condoFormAction(condo *entry.Condominium) string {
+	if condo == nil {
+		return "/super/condos"
+	}
+	return "/super/condos/" + strconv.FormatInt(condo.ID, 10)
+}
+
+func condoValue(condo *entry.Condominium, field string) string {
+	if condo == nil {
+		return ""
+	}
+	switch field {
+	case "name":
+		return condo.Name
+	case "address":
+		return condo.Address
+	default:
+		return ""
+	}
+}

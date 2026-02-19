@@ -1,6 +1,8 @@
 package entry
 
-import "log/slog"
+import (
+	"log/slog"
+)
 
 type App struct {
 	Config Config

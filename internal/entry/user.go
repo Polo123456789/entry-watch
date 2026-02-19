@@ -39,6 +39,10 @@ func (e *UnauthorizedError) Error() string {
 	return e.msg
 }
 
+func NewUnauthorizedError(msg string) *UnauthorizedError {
+	return &UnauthorizedError{msg: msg}
+}
+
 type ForbiddenError struct {
 	msg string
 }
@@ -47,16 +51,20 @@ func (e *ForbiddenError) Error() string {
 	return e.msg
 }
 
+func NewForbiddenError(msg string) *ForbiddenError {
+	return &ForbiddenError{msg: msg}
+}
+
 func RequireRole(ctx context.Context, role UserRole) (*User, error) {
 	user := UserFromCtx(ctx)
 	if user == nil {
-		return nil, &UnauthorizedError{msg: "user not authenticated"}
+		return nil, NewUnauthorizedError("user not authenticated")
 	}
 	if !user.Enabled {
-		return nil, &ForbiddenError{msg: "user is disabled"}
+		return nil, NewForbiddenError("user is disabled")
 	}
 	if user.Role != role && user.Role != RoleSuperAdmin {
-		return nil, &ForbiddenError{msg: "insufficient permissions"}
+		return nil, NewForbiddenError("insufficient permissions")
 	}
 	return user, nil
 }
@@ -69,9 +77,7 @@ func RequireRoleAndCondo(
 		return nil, err
 	}
 	if user.CondominiumID != condoID && user.Role != RoleSuperAdmin {
-		return nil, &ForbiddenError{
-			msg: "insufficient permissions for this condominium",
-		}
+		return nil, NewForbiddenError("insufficient permissions for this condominium")
 	}
 	return user, nil
 }

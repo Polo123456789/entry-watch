@@ -10,7 +10,6 @@ import (
 	"log/slog"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
-	"github.com/Polo123456789/entry-watch/internal/templates/common"
 )
 
 func TestHandleErrorResponses(t *testing.T) {

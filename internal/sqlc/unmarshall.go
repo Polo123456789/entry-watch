@@ -2,6 +2,7 @@ package sqlc
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
 	"github.com/Polo123456789/entry-watch/internal/http/auth"
@@ -34,5 +35,17 @@ func (u User) unmarshall() *auth.User {
 		Role:          entry.UserRole(u.Role),
 		Enabled:       u.Enabled,
 		Hidden:        u.Hidden,
+	}
+}
+
+func (c Condominium) unmarshall() *entry.Condominium {
+	return &entry.Condominium{
+		ID:        c.ID,
+		Name:      c.Name,
+		Address:   c.Address,
+		CreatedAt: time.Unix(c.CreatedAt, 0),
+		UpdatedAt: time.Unix(c.UpdatedAt, 0),
+		CreatedBy: validNullInt64(c.CreatedBy),
+		UpdatedBy: validNullInt64(c.UpdatedBy),
 	}
 }

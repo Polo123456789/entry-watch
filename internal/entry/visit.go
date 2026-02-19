@@ -19,7 +19,7 @@ type Visit struct {
 }
 
 type VisitStore interface {
-	VisitGetByID(ctx context.Context, id string) (*Visit, error)
+	VisitGetByID(ctx context.Context, id string) (*Visit, bool, error)
 	VisitCreate(ctx context.Context, visit *Visit) (*Visit, error)
 	VisitUpdate(
 		ctx context.Context,

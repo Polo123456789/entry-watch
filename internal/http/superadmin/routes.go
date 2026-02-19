@@ -5,17 +5,32 @@ import (
 	"net/http"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
+	"github.com/Polo123456789/entry-watch/internal/http/auth"
 	"github.com/Polo123456789/entry-watch/internal/http/util"
 )
 
 func Handle(
 	app *entry.App,
 	logger *slog.Logger,
+	userStore auth.UserStore,
 ) http.Handler {
 	mux := http.NewServeMux()
 
-	// Setup routes
-	mux.Handle("/super/", hGet(app, logger))
+	mux.Handle("GET /super/", hGet(app, logger))
+
+	mux.Handle("GET /super/condos", hCondosList(app, logger))
+	mux.Handle("GET /super/condos/new", hCondosNew(app, logger))
+	mux.Handle("POST /super/condos", hCondosCreate(app, logger))
+	mux.Handle("GET /super/condos/{id}/edit", hCondosEdit(app, logger))
+	mux.Handle("PUT /super/condos/{id}", hCondosUpdate(app, logger))
+	mux.Handle("DELETE /super/condos/{id}", hCondosDelete(app, userStore, logger))
+
+	mux.Handle("GET /super/admins", hAdminsList(userStore, logger))
+	mux.Handle("GET /super/admins/new", hAdminsNew(app, logger))
+	mux.Handle("POST /super/admins", hAdminsCreate(userStore, logger))
+	mux.Handle("GET /super/admins/{id}/edit", hAdminsEdit(userStore, app, logger))
+	mux.Handle("PUT /super/admins/{id}", hAdminsUpdate(userStore, logger))
+	mux.Handle("DELETE /super/admins/{id}", hAdminsDelete(userStore, logger))
 
 	var handler http.Handler = mux
 	handler = authMiddleware(handler, logger)
