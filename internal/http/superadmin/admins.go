@@ -171,6 +171,12 @@ func hAdminsDelete(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 			return util.NewErrorWithCode("ID inválido", http.StatusBadRequest)
 		}
 
+		currentUser := entry.UserFromCtx(r.Context())
+
+		if id == currentUser.ID {
+			return entry.NewUserSafeError("No puedes eliminar tu propia cuenta")
+		}
+
 		if err := userStore.UserDelete(r.Context(), id); err != nil {
 			return err
 		}
