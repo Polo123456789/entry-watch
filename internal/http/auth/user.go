@@ -34,8 +34,8 @@ type UserStore interface {
 	CreateUser(ctx context.Context, user *User, passwordHash string) (*User, error)
 	CountSuperAdmins(ctx context.Context) (int64, error)
 	UserListByRole(ctx context.Context, role entry.UserRole) ([]UserWithCondo, error)
-	UserUpdate(ctx context.Context, id int64, user *User, updatedBy int64) (*User, error)
-	UserUpdatePassword(ctx context.Context, id int64, passwordHash string, updatedBy int64) error
+	UserUpdate(ctx context.Context, id int64, user *User) (*User, error)
+	UserUpdatePassword(ctx context.Context, id int64, passwordHash string) error
 	UserDelete(ctx context.Context, id int64) error
 }
 

@@ -101,7 +101,7 @@ func (s *UserStore) UserListByRole(ctx context.Context, role entry.UserRole) ([]
 	return result, nil
 }
 
-func (s *UserStore) UserUpdate(ctx context.Context, id int64, user *auth.User, updatedBy int64) (*auth.User, error) {
+func (s *UserStore) UserUpdate(ctx context.Context, id int64, user *auth.User) (*auth.User, error) {
 	var condoID sql.NullInt64
 	if user.CondominiumID != 0 {
 		condoID = sql.NullInt64{Int64: user.CondominiumID, Valid: true}
@@ -110,6 +110,12 @@ func (s *UserStore) UserUpdate(ctx context.Context, id int64, user *auth.User, u
 	var phone sql.NullString
 	if user.Phone != "" {
 		phone = sql.NullString{String: user.Phone, Valid: true}
+	}
+
+	currentUser := entry.UserFromCtx(ctx)
+	var updatedBy sql.NullInt64
+	if currentUser != nil {
+		updatedBy = sql.NullInt64{Int64: currentUser.ID, Valid: true}
 	}
 
 	updated, err := s.queries.UserUpdate(ctx, UserUpdateParams{
@@ -121,7 +127,7 @@ func (s *UserStore) UserUpdate(ctx context.Context, id int64, user *auth.User, u
 		CondominiumID: condoID,
 		Enabled:       user.Enabled,
 		UpdatedAt:     time.Now().Unix(),
-		UpdatedBy:     sql.NullInt64{Int64: updatedBy, Valid: updatedBy != 0},
+		UpdatedBy:     updatedBy,
 	})
 	if err != nil {
 		return nil, err
@@ -133,12 +139,17 @@ func (s *UserStore) UserDelete(ctx context.Context, id int64) error {
 	return s.queries.UserDelete(ctx, id)
 }
 
-func (s *UserStore) UserUpdatePassword(ctx context.Context, id int64, passwordHash string, updatedBy int64) error {
+func (s *UserStore) UserUpdatePassword(ctx context.Context, id int64, passwordHash string) error {
+	currentUser := entry.UserFromCtx(ctx)
+	var updatedBy sql.NullInt64
+	if currentUser != nil {
+		updatedBy = sql.NullInt64{Int64: currentUser.ID, Valid: true}
+	}
 	return s.queries.UpdateUserPassword(ctx, UpdateUserPasswordParams{
 		ID:        id,
 		Password:  passwordHash,
 		UpdatedAt: time.Now().Unix(),
-		UpdatedBy: sql.NullInt64{Int64: updatedBy, Valid: updatedBy != 0},
+		UpdatedBy: updatedBy,
 	})
 }
 

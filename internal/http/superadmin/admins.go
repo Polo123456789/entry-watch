@@ -128,8 +128,6 @@ func hAdminsUpdate(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 			return err
 		}
 
-		currentUser := entry.UserFromCtx(r.Context())
-
 		condoID, err := strconv.ParseInt(r.FormValue("condominium_id"), 10, 64)
 		if err != nil || condoID == 0 {
 			return entry.NewUserSafeError("Debe seleccionar un condominio válido")
@@ -144,7 +142,7 @@ func hAdminsUpdate(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 			Enabled:       r.FormValue("enabled") == "on",
 		}
 
-		_, err = userStore.UserUpdate(r.Context(), id, user, currentUser.ID)
+		_, err = userStore.UserUpdate(r.Context(), id, user)
 		if err != nil {
 			return err
 		}
@@ -154,7 +152,7 @@ func hAdminsUpdate(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 			if err != nil {
 				return err
 			}
-			if err := userStore.UserUpdatePassword(r.Context(), id, string(hash), currentUser.ID); err != nil {
+			if err := userStore.UserUpdatePassword(r.Context(), id, string(hash)); err != nil {
 				return err
 			}
 		}
