@@ -3,6 +3,7 @@ package superadmin
 import (
 	"log/slog"
 	"net/http"
+	"net/mail"
 	"strconv"
 
 	"github.com/Polo123456789/entry-watch/internal/entry"
@@ -188,6 +189,9 @@ func validateAdminInput(firstName, lastName, email, password string, requirePass
 	}
 	if email == "" {
 		return entry.NewUserSafeError("El email es requerido")
+	}
+	if _, err := mail.ParseAddress(email); err != nil {
+		return entry.NewUserSafeError("El email no tiene un formato válido")
 	}
 	if len(email) > 255 {
 		return entry.NewUserSafeError("El email no puede exceder 255 caracteres")
