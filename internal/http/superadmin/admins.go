@@ -189,25 +189,19 @@ func validateAdminInput(
 	if len(lastName) == 0 || len(lastName) > 100 {
 		return entry.NewUserSafeError("El apellido debe tener entre 1 y 100 caracteres")
 	}
+
 	if email == "" {
 		return entry.NewUserSafeError("El email es requerido")
-	}
-	if _, err := mail.ParseAddress(email); err != nil {
-		return entry.NewUserSafeError("El email no tiene un formato válido")
 	}
 	if len(email) > 255 {
 		return entry.NewUserSafeError("El email no puede exceder 255 caracteres")
 	}
-	if requirePassword {
-		if password == "" {
-			return entry.NewUserSafeError("La contraseña es requerida")
-		}
-		if len(password) < 8 {
-			return entry.NewUserSafeError("La contraseña debe tener al menos 8 caracteres")
-		}
-		if len(password) > 72 {
-			return entry.NewUserSafeError("La contraseña no puede exceder 72 caracteres")
-		}
+	if _, err := mail.ParseAddress(email); err != nil {
+		return entry.NewUserSafeError("El email no tiene un formato válido")
+	}
+
+	if requirePassword && password == "" {
+		return entry.NewUserSafeError("La contraseña es requerida")
 	} else if password != "" {
 		if len(password) < 8 {
 			return entry.NewUserSafeError("La contraseña debe tener al menos 8 caracteres")
@@ -216,5 +210,6 @@ func validateAdminInput(
 			return entry.NewUserSafeError("La contraseña no puede exceder 72 caracteres")
 		}
 	}
+
 	return nil
 }
