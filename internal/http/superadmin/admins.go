@@ -120,7 +120,9 @@ func hAdminsUpdate(userStore auth.UserStore, logger *slog.Logger) http.Handler {
 		phone := r.FormValue("phone")
 		password := r.FormValue("password")
 
-		if err := validateAdminInput(firstName, lastName, email, password, false); err != nil {
+		if err := validateAdminInput(
+			firstName, lastName, email, password, false,
+		); err != nil {
 			return err
 		}
 
