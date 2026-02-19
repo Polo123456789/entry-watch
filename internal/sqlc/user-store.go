@@ -113,9 +113,8 @@ func (s *UserStore) UserUpdate(ctx context.Context, id int64, user *auth.User) (
 	}
 
 	currentUser := entry.UserFromCtx(ctx)
-	var updatedBy sql.NullInt64
-	if currentUser != nil {
-		updatedBy = sql.NullInt64{Int64: currentUser.ID, Valid: true}
+	if currentUser == nil {
+		return nil, entry.NewUnauthorizedError("usuario no encontrado en contexto")
 	}
 
 	updated, err := s.queries.UserUpdate(ctx, UserUpdateParams{
@@ -127,7 +126,7 @@ func (s *UserStore) UserUpdate(ctx context.Context, id int64, user *auth.User) (
 		CondominiumID: condoID,
 		Enabled:       user.Enabled,
 		UpdatedAt:     time.Now().Unix(),
-		UpdatedBy:     updatedBy,
+		UpdatedBy:     sql.NullInt64{Int64: currentUser.ID, Valid: true},
 	})
 	if err != nil {
 		return nil, err
@@ -141,15 +140,14 @@ func (s *UserStore) UserDelete(ctx context.Context, id int64) error {
 
 func (s *UserStore) UserUpdatePassword(ctx context.Context, id int64, passwordHash string) error {
 	currentUser := entry.UserFromCtx(ctx)
-	var updatedBy sql.NullInt64
-	if currentUser != nil {
-		updatedBy = sql.NullInt64{Int64: currentUser.ID, Valid: true}
+	if currentUser == nil {
+		return entry.NewUnauthorizedError("usuario no encontrado en contexto")
 	}
 	return s.queries.UpdateUserPassword(ctx, UpdateUserPasswordParams{
 		ID:        id,
 		Password:  passwordHash,
 		UpdatedAt: time.Now().Unix(),
-		UpdatedBy: updatedBy,
+		UpdatedBy: sql.NullInt64{Int64: currentUser.ID, Valid: true},
 	})
 }
 

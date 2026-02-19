@@ -35,17 +35,16 @@ func (s *Store) CondoGetByID(ctx context.Context, id int64) (*entry.Condominium,
 func (s *Store) CondoCreate(ctx context.Context, condo *entry.Condominium) (*entry.Condominium, error) {
 	now := time.Now().Unix()
 	user := entry.UserFromCtx(ctx)
-	var createdBy sql.NullInt64
-	if user != nil {
-		createdBy = sql.NullInt64{Int64: user.ID, Valid: true}
+	if user == nil {
+		return nil, entry.NewUnauthorizedError("usuario no encontrado en contexto")
 	}
 	created, err := s.Queries.CondoCreate(ctx, CondoCreateParams{
 		Name:      condo.Name,
 		Address:   condo.Address,
 		CreatedAt: now,
 		UpdatedAt: now,
-		CreatedBy: createdBy,
-		UpdatedBy: createdBy,
+		CreatedBy: sql.NullInt64{Int64: user.ID, Valid: true},
+		UpdatedBy: sql.NullInt64{Int64: user.ID, Valid: true},
 	})
 	if err != nil {
 		return nil, err
@@ -70,16 +69,15 @@ func (s *Store) CondoUpdate(
 		return err
 	}
 	user := entry.UserFromCtx(ctx)
-	var updatedBy sql.NullInt64
-	if user != nil {
-		updatedBy = sql.NullInt64{Int64: user.ID, Valid: true}
+	if user == nil {
+		return entry.NewUnauthorizedError("usuario no encontrado en contexto")
 	}
 	_, err = s.Queries.CondoUpdate(ctx, CondoUpdateParams{
 		ID:        id,
 		Name:      updated.Name,
 		Address:   updated.Address,
 		UpdatedAt: time.Now().Unix(),
-		UpdatedBy: updatedBy,
+		UpdatedBy: sql.NullInt64{Int64: user.ID, Valid: true},
 	})
 	return err
 }
