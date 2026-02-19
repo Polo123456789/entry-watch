@@ -48,7 +48,7 @@ func EnsureSuperAdminExists(ctx context.Context, store UserStore, logger *slog.L
 		Hidden:        false,
 	}
 
-	createdUser, err := store.CreateUser(ctx, user, string(passwordHash))
+	createdUser, err := store.CreateUserBootstrap(ctx, user, string(passwordHash))
 	if err != nil {
 		return err
 	}

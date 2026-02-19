@@ -32,6 +32,7 @@ type UserStore interface {
 	GetByEmailForAuth(ctx context.Context, email string) (UserWithPassword, bool, error)
 	GetByID(ctx context.Context, id int64) (*User, bool, error)
 	CreateUser(ctx context.Context, user *User, passwordHash string) (*User, error)
+	CreateUserBootstrap(ctx context.Context, user *User, passwordHash string) (*User, error)
 	CountSuperAdmins(ctx context.Context) (int64, error)
 	UserListByRole(ctx context.Context, role entry.UserRole) ([]UserWithCondo, error)
 	UserUpdate(ctx context.Context, id int64, user *User) (*User, error)

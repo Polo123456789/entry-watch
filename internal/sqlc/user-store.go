@@ -60,10 +60,9 @@ func (s *UserStore) CreateUser(ctx context.Context, user *auth.User, passwordHas
 		phone = sql.NullString{String: user.Phone, Valid: true}
 	}
 
-	var createdBy, updatedBy sql.NullInt64
-	if currentUser := entry.UserFromCtx(ctx); currentUser != nil {
-		createdBy = sql.NullInt64{Int64: currentUser.ID, Valid: true}
-		updatedBy = sql.NullInt64{Int64: currentUser.ID, Valid: true}
+	currentUser := entry.UserFromCtx(ctx)
+	if currentUser == nil {
+		return nil, entry.NewUnauthorizedError("usuario no encontrado en contexto")
 	}
 
 	createdUser, err := s.queries.CreateUser(ctx, CreateUserParams{
@@ -78,8 +77,45 @@ func (s *UserStore) CreateUser(ctx context.Context, user *auth.User, passwordHas
 		Hidden:        user.Hidden,
 		CreatedAt:     now,
 		UpdatedAt:     now,
-		CreatedBy:     createdBy,
-		UpdatedBy:     updatedBy,
+		CreatedBy:     sql.NullInt64{Int64: currentUser.ID, Valid: true},
+		UpdatedBy:     sql.NullInt64{Int64: currentUser.ID, Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return createdUser.unmarshall(), nil
+}
+
+// CreateUserBootstrap creates a user without requiring a user in context.
+// Only used for creating the initial superadmin during bootstrap.
+func (s *UserStore) CreateUserBootstrap(ctx context.Context, user *auth.User, passwordHash string) (*auth.User, error) {
+	now := time.Now().Unix()
+
+	var condoID sql.NullInt64
+	if user.CondominiumID != 0 {
+		condoID = sql.NullInt64{Int64: user.CondominiumID, Valid: true}
+	}
+
+	var phone sql.NullString
+	if user.Phone != "" {
+		phone = sql.NullString{String: user.Phone, Valid: true}
+	}
+
+	createdUser, err := s.queries.CreateUser(ctx, CreateUserParams{
+		CondominiumID: condoID,
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		Email:         user.Email,
+		Phone:         phone,
+		Role:          string(user.Role),
+		Password:      passwordHash,
+		Enabled:       user.Enabled,
+		Hidden:        user.Hidden,
+		CreatedAt:     now,
+		UpdatedAt:     now,
+		CreatedBy:     sql.NullInt64{},
+		UpdatedBy:     sql.NullInt64{},
 	})
 	if err != nil {
 		return nil, err
